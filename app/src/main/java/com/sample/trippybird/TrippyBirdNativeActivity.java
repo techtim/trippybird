@@ -75,11 +75,22 @@ public class TrippyBirdNativeActivity extends NativeActivity {
 
     protected void onPause()
     {
+//        View decorView = getWindow().getDecorView();
+//        decorView.setVisibility(View.GONE);
         super.onPause();
     }
-    // Our popup window, you will call it from your C/C++ code later
 
-    @TargetApi(19)
+    // Our popup window, you will call it from your C/C++ code later
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        View decorView = getWindow().getDecorView();
+        if (hasFocus && decorView.getVisibility() == View.GONE) {
+            decorView.setVisibility(View.VISIBLE);
+        }
+    }
+
+        @TargetApi(19)
     void setImmersiveSticky() {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN

@@ -42,8 +42,9 @@ uniform lowp vec4       vMaterialDiffuse;
 uniform lowp vec3       vMaterialAmbient;
 uniform lowp vec4       vMaterialSpecular;
 
-void main(void)
-{
+uniform lowp int        iObjectType;
+
+void drawCylinder() {
     highp vec4 p = vec4(myVertex,1);
     gl_Position = uPMatrix * p;
 
@@ -65,4 +66,17 @@ void main(void)
     highp float specular = min( pow(NdotH, fPower), 1.0);
     colorSpecular = vec4( vMaterialSpecular.xyz * specular, 1 );
 #endif
+}
+
+void drawLine() {
+    highp vec4 p = vec4(myVertex,1);
+    gl_Position = uPMatrix * p;
+}
+
+void main(void) {
+    if (iObjectType == 0) {
+        drawCylinder();
+    } else if (iObjectType == 2) {
+        drawLine();
+    }
 }

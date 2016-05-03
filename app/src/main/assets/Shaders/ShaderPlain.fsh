@@ -21,6 +21,8 @@
 uniform lowp vec3       vMaterialAmbient;
 uniform mediump vec4       vMaterialSpecular;
 
+uniform lowp int        iObjectType;
+
 varying lowp vec4 colorDiffuse;
 
 #if USE_PHONG
@@ -31,7 +33,7 @@ varying mediump vec3 normal;
 varying lowp vec4 colorSpecular;
 #endif
 
-void main()
+void drawCylinder()
 {
 #if USE_PHONG
     mediump vec3 halfVector = normalize(-vLight0 + position);
@@ -44,4 +46,16 @@ void main()
 #else
     gl_FragColor = colorDiffuse + colorSpecular;
 #endif
+}
+
+void drawLine() {
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+}
+
+void main(void) {
+    if (iObjectType == 0) {
+        drawCylinder();
+    } else if (iObjectType == 2) {
+        drawLine();
+    }
 }

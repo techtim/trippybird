@@ -55,6 +55,7 @@ class Engine {
     ndk_helper::TapCamera tap_camera_;
 
     android_app* app_;
+    struct SAVED_STATE state;
 
     ASensorManager* sensor_manager_;
     const ASensor* accelerometer_sensor_;
@@ -116,7 +117,9 @@ void Engine::LoadResources() {
 /**
  * Unload resources
  */
-void Engine::UnloadResources() { renderer_.Unload(); }
+void Engine::UnloadResources() {
+  renderer_.Unload();
+}
 
 /**
  * Initialize an EGL context for the current display.
@@ -128,6 +131,7 @@ int Engine::InitDisplay() {
     initialized_resources_ = true;
   } else {
     // initialize OpenGL ES and EGL
+//    gl_context_->Init(app_->window);
     if (EGL_SUCCESS != gl_context_->Resume(app_->window)) {
       UnloadResources();
       LoadResources();
@@ -137,7 +141,7 @@ int Engine::InitDisplay() {
   ShowUI();
 
   // Initialize GL state.
-  glEnable(GL_CULL_FACE);
+//  glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
 
@@ -147,7 +151,7 @@ int Engine::InitDisplay() {
   renderer_.UpdateViewport();
 
   tap_camera_.SetFlip(1.f, -1.f, -1.f);
-  tap_camera_.SetPinchTransformFactor(2.f, 2.f, 8.f);
+  tap_camera_.SetPinchTransformFactor(2.f, 2.f, 3.f);
 
   return 0;
 }
@@ -177,7 +181,9 @@ void Engine::DrawFrame() {
 /**
  * Tear down the EGL context currently associated with the display.
  */
-void Engine::TermDisplay() { gl_context_->Suspend(); }
+void Engine::TermDisplay() {
+  gl_context_->Suspend();
+}
 
 void Engine::TrimMemory() {
   LOGI("Trimming memory");
@@ -198,8 +204,7 @@ int32_t Engine::HandleInput(android_app* app, AInputEvent* event) {
     // Double tap detector has a priority over other detectors
     if (doubleTapState == ndk_helper::GESTURE_STATE_ACTION) {
       // Detect double tap
-//      eng->tap_camera_.Reset(true);
-      eng->renderer_.onTap();
+      eng->renderer_.onDoubleTap();
     } else if (tapState == ndk_helper::GESTURE_STATE_ACTION) {
         eng->renderer_.onTap();
     } else {
@@ -251,6 +256,10 @@ void Engine::HandleCmd(struct android_app* app, int32_t cmd) {
   Engine* eng = (Engine*)app->userData;
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
+//          app->savedState = malloc(sizeof(struct SAVED_STATE));
+//          (struct SAVED_STATE*)app->savedState = state;
+//          app->savedStateSize = sizeof(struct SAVED_STATE);
+          break;
       break;
     case APP_CMD_INIT_WINDOW:
       // The window is being shown, get it ready.
@@ -269,6 +278,7 @@ void Engine::HandleCmd(struct android_app* app, int32_t cmd) {
     case APP_CMD_GAINED_FOCUS:
       eng->ResumeSensors();
           // Start animation
+//          eng->InitDisplay();
           eng->has_focus_ = true;
           break;
     case APP_CMD_LOST_FOCUS:

@@ -50,17 +50,6 @@
 #include "Bird.hpp"
 #include "Obstacle.hpp"
 
-struct TEAPOT_VERTEX {
-  float pos[3];
-  float normal[3];
-};
-
-struct TEAPOT_MATERIALS {
-  float diffuse_color[3];
-  float specular_color[4];
-  float ambient_color[3];
-};
-
 class TrippyBirdRenderer {
  public:
     TrippyBirdRenderer();
@@ -68,7 +57,8 @@ class TrippyBirdRenderer {
     void Init();
     void Render();
     void Update(float dTime);
-    void onTap() { bird_.onTap(); }
+    void onTap();
+	void onDoubleTap();
     bool Bind(ndk_helper::TapCamera* camera);
     void Unload();
     void UpdateViewport();
@@ -85,26 +75,15 @@ class TrippyBirdRenderer {
     ndk_helper::Mat4 mat_model_;
 
     ndk_helper::TapCamera* camera_;
+	bool bCameraActive;
 
     CylinderObject  cylinderObj_;
     Bird            bird_;
 
-    struct CYLINDER_VERTEX {
-        float pos[3];
-        float normal[3];
-    };
-
-    std::vector<uint16_t> indices;
-    std::vector<CYLINDER_VERTEX> vertices;
     std::vector<Obstacle> obstacles_;
     float obstacles_dist;
-    int32_t stride;
-    bool bLoaded;
+	std::vector<Obstacle> & getObstacles() { return obstacles_; }
 
-    template <class T>
-    inline void glBufferDataFromVector(GLenum target, const std::vector<T>& v, GLenum usage) {
-        glBufferData(target, v.size() * sizeof(T), &v[0], usage);
-    }
 };
 
 #endif

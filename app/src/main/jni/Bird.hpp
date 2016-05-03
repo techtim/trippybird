@@ -24,6 +24,7 @@ public:
 	~Bird() {;;}
 
 	void Init();
+	void Unload();
 	void onTap();
 	void update();
 
@@ -39,7 +40,7 @@ public:
 	void setColliding(bool is_colliding) { bColliding = is_colliding; }
 
 	ndk_helper::Vec3 getPosition() { return world_pos; }
-
+	const ndk_helper::Mat4 & getModelMatrix() { return mat_model; }
 	void setState(State  new_state) { state_ = new_state; }
 
 	CIRCLE & getCircle() { return circle; }
@@ -50,9 +51,13 @@ private:
 	float inertion;
 	CIRCLE circle;
 
+	GLuint ibo_;
+	GLuint vbo_left, vbo_right;
+
 	bool bColliding;
-	std::vector<ndk_helper::Vec3> wingLeft;
-	std::vector<ndk_helper::Vec3> wingRight;
+	std::vector<VERTEX> wingLeft;
+	std::vector<VERTEX> wingRight;
+	ndk_helper::Mat4 mat_model;
 };
 
 

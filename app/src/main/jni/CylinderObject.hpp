@@ -4,23 +4,21 @@
 
 #pragma once
 
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include "vecmath.h"
-
+#include "NDKHelper.h"
 #include "Utils.hpp"
 #include "CylinderModel.hpp"
 
 //using namespace cylinderNamespace;
 
-#define CYLINDER_RADIUS 0.02
+#define CYLINDER_RADIUS 0.04f
+#define CYLINDER_HEIGHT 1.f
 
 class CylinderObject {
 public:
     CylinderObject()
     : bLoaded(false),
     radius(CYLINDER_RADIUS),
-    height(1.f)
+    height(CYLINDER_HEIGHT)
     {;;}
     ~CylinderObject(){
         if (vbo_) {
@@ -35,40 +33,23 @@ public:
     }
 
     void Init() {
-            generateCylinder();
-            bLoaded = true;
-            return;
-//             Create Index buffer
-        num_indices_ = sizeof(cylinderIndices) / sizeof(cylinderIndices[0]);
-        glGenBuffers(1, &ibo_);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cylinderIndices), cylinderIndices,
-                     GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	    generateCylinder();
 
-        // Create VBO
-        num_vertices_ = sizeof(cylinderVertices) / sizeof(cylinderVertices[0]) / 3;
-        int32_t stride = sizeof(CYLINDER_VERTEX);
-        int32_t index = 0;
-        CYLINDER_VERTEX* p = new CYLINDER_VERTEX[num_vertices_];
-        for (int32_t i = 0; i < num_vertices_; ++i) {
-            p[i].pos[0] = cylinderVertices[index];
-            p[i].pos[1] = cylinderVertices[index + 1];
-            p[i].pos[2] = cylinderVertices[index + 2];
-
-            p[i].normal[0] = cylinderNormals[index];
-            p[i].normal[1] = cylinderNormals[index + 1];
-            p[i].normal[2] = cylinderNormals[index + 2];
-            index += 3;
-        }
-        glGenBuffers(1, &vbo_);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-        glBufferData(GL_ARRAY_BUFFER, stride * num_vertices_, p, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        delete[] p;
         bLoaded = true;
     }
+
+	void Unload(){
+		if (vbo_) {
+			glDeleteBuffers(1, &vbo_);
+			vbo_ = 0;
+		}
+
+		if (ibo_) {
+			glDeleteBuffers(1, &ibo_);
+			ibo_ = 0;
+		}
+		bLoaded = false;
+	}
 
     void bind() {
         if (!bLoaded || bBind) return;
@@ -106,13 +87,15 @@ public:
 
     float getRadius() { return radius; }
     float getHeight() { return height; }
+
 private:
     int32_t num_indices_;
     int32_t num_vertices_;
     GLuint ibo_;
     GLuint vbo_;
+	GLuint nbo_;
 
-    bool bLoaded, bBind;
+	bool bLoaded, bBind;
 
     ndk_helper::Mat4 mat_projection_;
     ndk_helper::Mat4 mat_view_;
@@ -121,104 +104,149 @@ private:
     float radius;
     float height;
 
-    struct CYLINDER_VERTEX {
-        float pos[3];
-        float normal[3];
-    };
-
     std::vector<uint16_t> indices;
-    std::vector<CYLINDER_VERTEX> vertices;
-
+    std::vector<VERTEX> cylVertices;
+	std::vector<ndk_helper::Vec3> vertices;
+	std::vector<ndk_helper::Vec3> normals;
+	std::vector<ndk_helper::Vec2> uvs;
     int32_t stride;
 
     void generateCylinder() {
-        stride = sizeof(CYLINDER_VERTEX);
-        float x=0, y=0, z=0;
-        int sides = 20;
-        num_vertices_ = sides * 2;
-        const float theta = 2. * M_PI / (float)sides;
-        float c = cosf(theta);
-        float s = sinf(theta);
-        // coordinates on top of the circle, on xz plane
-        float x2 = radius, z2 = 0;
-        //        CYLINDER_VERTEX* p = new CYLINDER_VERTEX[num_vertices_];
-        // make the strip
 
-        vertices.resize(num_vertices_);
+	    vertices.clear();
+	    normals.clear();
+	    indices.clear();
+	    uvs.clear();
+	    cylVertices.clear();
 
-        int vertNum = 0;
+        stride = sizeof(VERTEX);
+//        float x=0, y=0, z=0;
+        int radiusSegments = 21;
+	    int capSegs = 2;
+	    int heightSegments = 2;
+//	    float halfH = height*.5f;
+	    float heightInc = height/((float)heightSegments-1.f);
 
-//        vertices[vertNum].pos[0] = 0;
-//        vertices[vertNum].pos[1] = y;
-//        vertices[vertNum].pos[2] = 0;
-//
-//        vertices[vertNum].normal[0] = 0;
-//        vertices[vertNum].normal[1] = 1;
-//        vertices[vertNum].normal[2] = 0;
-//
-//        vertNum++;
-        vertices[vertNum].pos[0] = 0;
-        vertices[vertNum].pos[1] = y+height;
-        vertices[vertNum].pos[2] = 0;
+	    ndk_helper::Vec3 up_axis = ndk_helper::Vec3(0.f,1.f,0);
+	    float angleIncRadius = -1 * (2.f*M_PI/((float)radiusSegments-1.f));
+	    float maxTexY   = heightSegments-1.f;
+	    if(capSegs > 0) {
+		    maxTexY += (capSegs*2)-2.f;
+	    }
+	    float maxTexYNormalized = (capSegs-1.f) / maxTexY;
 
-        vertices[vertNum].normal[0] = 0;
-        vertices[vertNum].normal[1] = 1;
-        vertices[vertNum].normal[2] = 0;
+	    float newRad;
+	    ndk_helper::Vec3 vert;
+	    ndk_helper::Vec2 tcoord;
+	    ndk_helper::Vec3 normal(0,1,0);
 
-        vertNum++;
-        for(int i=0; i<=sides; i++) {
-            // texture coord
-//            const float tx = (float)i/sides;
-            // normal
-            const float nf = 1./sqrt(x2*x2+z2*z2),
-                    xn = x2*nf, zn = z2*nf;
+	    std::size_t vertOffset = 0;
+		int cntr_vert = 0;
 
-            vertices[vertNum].pos[0] = x+x2;
-            vertices[vertNum].pos[1] = y;
-            vertices[vertNum].pos[2] = z+z2;
+	    // add top cap
+	    if (capSegs > 0) {
+		    for (int iy = 0; iy < capSegs; iy++) {
+			    for (int ix = 0; ix < radiusSegments; ix++) {
+				    newRad = valueMap((float) iy, 0, capSegs - 1, 0.0, radius);
+				    vert = ndk_helper::Vec3(cos((float) ix * angleIncRadius) * newRad,
+											-height,
+											sin((float) ix * angleIncRadius) * newRad);
+				    vertices.push_back(vert);
 
-            vertices[vertNum+1].pos[0] = x+x2;
-            vertices[vertNum+1].pos[1] = y+height;
-            vertices[vertNum+1].pos[2] = z+z2;
+				    tcoord = ndk_helper::Vec2((float) ix / ((float) radiusSegments - 1.f),
+				                            valueMap(iy, 0, capSegs - 1, 0, maxTexYNormalized));
+				    uvs.push_back(tcoord);
+				    normals.push_back(normal);
 
-            vertices[vertNum].normal[0] = vertices[vertNum+1].normal[0] = xn;
-            vertices[vertNum].normal[1] = vertices[vertNum+1].normal[1] = 0;
-            vertices[vertNum].normal[2] = vertices[vertNum+1].normal[2] = zn;
+				    cylVertices.push_back(VERTEX());
+				    vert.Value(cylVertices[cntr_vert].pos[0], cylVertices[cntr_vert].pos[1], cylVertices[cntr_vert].pos[2]);
+				    normal.Value(cylVertices[cntr_vert].normal[0],cylVertices[cntr_vert].normal[1],cylVertices[cntr_vert].normal[3]);
+				    cntr_vert++;
+			    }
+		    }
+		    for(int y = 0; y < capSegs-1; y++) {
+			    for(int x = 0; x < radiusSegments; x++) {
+				    indices.push_back((y)*radiusSegments + x + vertOffset);
+				    indices.push_back((y+1)*radiusSegments + x + vertOffset);
+			    }
+		    }
+		    vertOffset = vertices.size();
+	    }
 
+			    //maxTexY			 = heightSegments-1.f + capSegs-1.f;
+	    float minTexYNormalized = 0;
+	    minTexYNormalized = maxTexYNormalized;
+	    maxTexYNormalized   = 1.f;
+	    maxTexYNormalized = (heightSegments) / maxTexY;
 
-            if (vertNum>2) {
-                indices.push_back(vertNum);
-                indices.push_back(vertNum - 2);
-                indices.push_back(vertNum + 1);
-                indices.push_back(vertNum - 1);
-                indices.push_back(0);
-                indices.push_back(vertNum + 1);
-                indices.push_back(vertNum + 1);
-                indices.push_back(vertNum + 2);
-            }
-            vertNum+=2;
+	    // cylinder vertices //
+	    for(int iy = 0; iy < heightSegments; iy++) {
+		    normal = ndk_helper::Vec3(1,0,0);
+		    for(int ix = 0; ix < radiusSegments; ix++) {
 
-//            indices.push_back(1);
-//                indices.push_back(0);
-//                indices.push_back(i);
-//            } else if ( i>0 && i%3==0) {
-//                indices.push_back(i);
-//                indices.push_back(i-1);
-//                indices.push_back(i+1);
-//            }
-            //            glNormal3f(xn,0,zn);
-            //            glTexCoord2f(tx,0);
-            //            glVertex3f(x+x2,y,z+z2);
-            //            glNormal3f(xn,0,zn);
-            //            glTexCoord2f(tx,1);
-            //            glVertex3f(x+x2,y+height,z+z2);
-            // next position
-            const float x3 = x2;
-            x2 = c * x2 - s * z2;
-            z2 = s * x3 + c * z2;
-        }
-        indices[indices.size()-1] = 0;
-        num_indices_ = indices.size();
+			    //newRad = ofMap((float)iy, 0, heightSegments-1, 0.0, radius);
+			    vert = ndk_helper::Vec3(cos((float)ix*angleIncRadius) * radius,
+			                            heightInc*((float)iy) - height,
+			                            sin((float)ix*angleIncRadius) * radius);
+			    vertices.push_back(vert);
+
+			    tcoord = ndk_helper::Vec2((float)ix/((float)radiusSegments-1.f),
+									    valueMap(iy, 0, heightSegments-1, minTexYNormalized, maxTexYNormalized));
+			    uvs.push_back( tcoord );
+
+			    normals.push_back( normal );
+			    normal = rotateRad(-angleIncRadius, normal, up_axis);
+
+			    cylVertices.push_back(VERTEX());
+			    vert.Value(cylVertices[cntr_vert].pos[0], cylVertices[cntr_vert].pos[1], cylVertices[cntr_vert].pos[2]);
+			    normal.Value(cylVertices[cntr_vert].normal[0],cylVertices[cntr_vert].normal[1],cylVertices[cntr_vert].normal[3]);
+			    cntr_vert++;
+		    }
+	    }
+
+	    for(int y = 0; y < heightSegments-1; y++) {
+		    for(int x = 0; x < radiusSegments; x++) {
+			    indices.push_back( (y)*radiusSegments + x + vertOffset );
+			    indices.push_back( (y+1)*radiusSegments + x + vertOffset );
+		    }
+	    }
+
+	    vertOffset = vertices.size();
+
+	    if (capSegs > 0) {
+		    minTexYNormalized = maxTexYNormalized;
+		    maxTexYNormalized = 1.f;
+
+		    normal = ndk_helper::Vec3(0, -1, 0);
+		    for (int iy = 0; iy < capSegs; iy++) {
+			    for (int ix = 0; ix < radiusSegments; ix++) {
+				    newRad = valueMap((float) iy, 0, capSegs - 1, radius, 0.0);
+				    vert = ndk_helper::Vec3(cos((float) ix * angleIncRadius) * newRad,
+				                            0,
+				                            sin((float) ix * angleIncRadius) * newRad);
+				    vertices.push_back(vert);
+				    tcoord = ndk_helper::Vec2((float) ix / ((float) radiusSegments - 1.f),
+				                              valueMap(iy, 0, capSegs - 1, minTexYNormalized,
+				                                       maxTexYNormalized));
+				    uvs.push_back(tcoord);
+				    normals.push_back(normal);
+
+				    cylVertices.push_back(VERTEX());
+				    vert.Value(cylVertices[cntr_vert].pos[0], cylVertices[cntr_vert].pos[1], cylVertices[cntr_vert].pos[2]);
+				    normal.Value(cylVertices[cntr_vert].normal[0],cylVertices[cntr_vert].normal[1],cylVertices[cntr_vert].normal[3]);
+				    cntr_vert++;
+			    }
+		    }
+
+		    for(int y = 0; y < capSegs-1; y++) {
+			    for(int x = 0; x < radiusSegments; x++) {
+				    indices.push_back((y)*radiusSegments + x + vertOffset );
+				    indices.push_back((y+1)*radiusSegments + x + vertOffset);
+			    }
+		    }
+	    }
+
+		num_indices_ = indices.size();
         glGenBuffers(1, &ibo_);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
 
@@ -227,7 +255,7 @@ private:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glGenBuffers(1, &vbo_);
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-        glBufferDataFromVector(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+        glBufferDataFromVector(GL_ARRAY_BUFFER, cylVertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         bLoaded = true;
