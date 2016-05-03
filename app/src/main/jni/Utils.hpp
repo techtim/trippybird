@@ -47,6 +47,7 @@ struct CYLINDER_MATERIALS {
 struct VERTEX {
 	float pos[3];
 	float normal[3];
+//	float uv[2];
 };
 
 struct CIRCLE {

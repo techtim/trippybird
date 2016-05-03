@@ -43,7 +43,6 @@ uniform lowp vec3       vMaterialAmbient;
 uniform lowp vec4       vMaterialSpecular;
 
 uniform lowp int        iObjectType;
-
 void drawCylinder() {
     highp vec4 p = vec4(myVertex,1);
     gl_Position = uPMatrix * p;

@@ -230,9 +230,7 @@ int32_t Engine::HandleInput(android_app* app, AInputEvent* event) {
         ndk_helper::Vec2 v1;
         ndk_helper::Vec2 v2;
         eng->pinch_detector_.GetPointers(v1, v2);
-        eng->TransformPosition(v1);
-        eng->TransformPosition(v2);
-        eng->tap_camera_.BeginPinch(v1, v2);
+	      eng->renderer_.toogleCamera();
       } else if (pinchState & ndk_helper::GESTURE_STATE_MOVE) {
         // Multi touch
         // Start new pinch

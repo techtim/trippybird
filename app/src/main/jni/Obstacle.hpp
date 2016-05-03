@@ -10,6 +10,7 @@
 
 #define OBSTACLES_MIN_HEIGHT .2f
 #define OBSTACLES_DISTANCE 0.3f
+#define OBSTACLES_SPEED 0.002
 
 class Obstacle {
 public:
@@ -32,9 +33,9 @@ public:
 		mat_model = ndk_helper::Mat4::Translation(pos);
 	}
 
-	void Update(float fTime){
+	void update(float fTime){
 		if (last_time_==0) last_time_ = fTime;
-		pos-=  ndk_helper::Vec3(0.001, 0 ,0 );
+		pos-=  ndk_helper::Vec3(OBSTACLES_SPEED, 0 ,0 );
 		last_time_ = fTime;
 		updateRectWithPos(pos);
 		mat_model = ndk_helper::Mat4::Translation(pos);

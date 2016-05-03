@@ -39,11 +39,9 @@
 #include <android_native_app_glue.h>
 #include <android/native_window_jni.h>
 #include <cpu-features.h>
+#include "NDKHelper.h"
 
 #define CLASS_NAME "android/app/NativeActivity"
-#define APPLICATION_CLASS_NAME "com/sample/teapot/TeapotApplication"
-
-#include "NDKHelper.h"
 
 #include "Utils.hpp"
 #include "CylinderObject.hpp"
@@ -63,7 +61,7 @@ class TrippyBirdRenderer {
     void Unload();
     void UpdateViewport();
 
-
+	void toogleCamera() { bCameraActive = !bCameraActive; }
   private:
 
     SHADER_PARAMS shader_param_;
@@ -83,6 +81,12 @@ class TrippyBirdRenderer {
     std::vector<Obstacle> obstacles_;
     float obstacles_dist;
 	std::vector<Obstacle> & getObstacles() { return obstacles_; }
+
+	const float CAM_NEAR = 0.5f;
+	const float CAM_FAR = 100.f;
+	const float CAM_X = 0.f;
+	const float CAM_Y = 0.5f;
+	const float CAM_Z = 1.f;
 
 };
 

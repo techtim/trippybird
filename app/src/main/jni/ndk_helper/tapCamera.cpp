@@ -202,7 +202,7 @@ void TapCamera::EndPinch() {
 void TapCamera::Pinch(const Vec2& v1, const Vec2& v2) {
   if (!pinching_) return;
 
-  // Update momentum factor
+  // update momentum factor
   vec_offset_last_ = vec_offset_now_;
 
   float x_diff, y_diff;
@@ -221,12 +221,12 @@ void TapCamera::Pinch(const Vec2& v1, const Vec2& v2) {
   vec = (v1 + v2) / 2.f - vec_pinch_start_center_;
   vec_offset_now_ = Vec3(vec, flip_z_ * f);
 
-  // Update momentum factor
+  // update momentum factor
   vec_offset_delta_ = vec_offset_delta_ * MOMENTUM_FACTOR +
                       (vec_offset_now_ - vec_offset_last_);
 
   //
-  // Update ration quaternion
+  // update ration quaternion
   float fRotation = atan2f(y_diff, x_diff);
   camera_rotation_now_ = fRotation - camera_rotation_start_;
 

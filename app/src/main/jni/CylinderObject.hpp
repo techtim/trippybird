@@ -66,9 +66,6 @@ public:
                               BUFFER_OFFSET(3 * sizeof(GLfloat)));
         glEnableVertexAttribArray(ATTRIB_NORMAL);
 
-//        glDrawArrays(GL_TRIANGLES, 0, num_vertices_);
-//        GL_TRIANGLE_STRIP
-
 //         Bind the IB
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
         bBind = true;
@@ -120,11 +117,9 @@ private:
 	    cylVertices.clear();
 
         stride = sizeof(VERTEX);
-//        float x=0, y=0, z=0;
         int radiusSegments = 21;
 	    int capSegs = 2;
 	    int heightSegments = 2;
-//	    float halfH = height*.5f;
 	    float heightInc = height/((float)heightSegments-1.f);
 
 	    ndk_helper::Vec3 up_axis = ndk_helper::Vec3(0.f,1.f,0);

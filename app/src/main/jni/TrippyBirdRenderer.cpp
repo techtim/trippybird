@@ -15,7 +15,7 @@ TrippyBirdRenderer::TrippyBirdRenderer()
 		:bCameraActive(false)
 {
 	srand(time(NULL));
-	obstacles_dist = cylinderObj_.getRadius()*10;
+	obstacles_dist = cylinderObj_.getRadius()*12;
 	int num_obstacles = ceil((2.5f - 0.5)/obstacles_dist);
 	for (int i=0; i<num_obstacles; i++) {
 		obstacles_.push_back(Obstacle(i*obstacles_dist));
@@ -43,7 +43,7 @@ void TrippyBirdRenderer::Init() {
 	LoadShaders(&shader_param_, "Shaders/VS_ShaderPlain.vsh",
 	            "Shaders/ShaderPlain.fsh");
 
-
+	bird_.Init();
 	cylinderObj_.Init();
 	srand(time(NULL));
 
@@ -93,9 +93,8 @@ void TrippyBirdRenderer::Update(float fTime) {
 	                                     ndk_helper::Vec3(0.f, 1.f, 0.f));
 
 	for (auto it=obstacles_.begin(); it<obstacles_.end(); ) {
-
-		it->Update(fTime);
-		if (it->getRect().x+it->getRect().width < -1.f) {
+		it->update(fTime);
+		if (it->getRect().x+it->getRect().width < -1.25f) {
 			it = obstacles_.erase(it);
 			it = obstacles_.erase(it);
 			obstacles_.push_back(Obstacle(obstacles_[obstacles_.size()-1].getPositionX()+obstacles_dist));
@@ -104,6 +103,8 @@ void TrippyBirdRenderer::Update(float fTime) {
 			it++;
 		}
 	}
+
+	bird_.update();
 
 	if (bCameraActive && camera_) {
 		camera_->Update();
@@ -123,7 +124,7 @@ void TrippyBirdRenderer::Render() {
 	CYLINDER_MATERIALS material = {
 			{.7f, 0.2f, 0.7f}, {1.0f, 1.0f, 7.0f, 10.f}, {0.4f, 0.0f, 0.6f}, };
 
-	// Update uniforms
+	// update uniforms
 	glUniform4f(shader_param_.material_diffuse_, material.diffuse_color[0],
 	            material.diffuse_color[1], material.diffuse_color[2], 1.f);
 
@@ -136,17 +137,14 @@ void TrippyBirdRenderer::Render() {
 	glUniform3f(shader_param_.material_ambient_, material.ambient_color[0],
 	            material.ambient_color[1], material.ambient_color[2]);
 
-	glUniform3f(shader_param_.light0_, -5.f, 0.f, 30.f);
+	glUniform3f(shader_param_.light0_, -25.f, .5f, 25.f);
 
+	// Draw Obstacles with Cylinders
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
-
 	cylinderObj_.bind();
 	for (auto &obst:obstacles_ ) {
-
-
 		ndk_helper::Mat4 mat_v = mat_view_ * obst.getModelMatrix();
 		ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
-
 		glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 		                   mat_vp.Ptr());
 		glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
@@ -156,7 +154,14 @@ void TrippyBirdRenderer::Render() {
 
 	cylinderObj_.unbind();
 
-	glUniform1i(shader_param_.object_type, TYPE_BIRD);
+	// Draw Bird
+	ndk_helper::Mat4 mat_v = mat_view_ * bird_.getModelMatrix();
+	ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
+
+	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
+	                   mat_vp.Ptr());
+	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
+//	glUniform1i(shader_param_.object_type, TYPE_BIRD);
 	bird_.draw();
 
 	if (bCameraActive) {
@@ -253,9 +258,10 @@ void TrippyBirdRenderer::onTap() {
 }
 
 void TrippyBirdRenderer::onDoubleTap() {
-	camera_->GetTransformMatrix() = ndk_helper::Mat4::Translation(.5,0.5,-1);
-	camera_->Reset(true);
-	bCameraActive = !bCameraActive;
+	bird_.onTap();
+//	camera_->GetTransformMatrix() = ndk_helper::Mat4::Translation(.5,0.5,-1);
+//	camera_->Reset(true);
+//	bCameraActive = !bCameraActive;
 }
 
 bool TrippyBirdRenderer::Bind(ndk_helper::TapCamera* camera) {

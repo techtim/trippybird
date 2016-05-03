@@ -8,120 +8,129 @@
 //FlyingDownState Bird::flyingDown;
 Bird::Bird():
 		state_(FLYING_DOWN),
-		world_pos(ndk_helper::Vec3(0.05, 0.5, 0))
+		inertion(0.f),
+		bInit(false),
+		bColliding(false),
+		world_pos(ndk_helper::Vec3(-0.8, 0.5, 0))
 {
 
+//
+	circle.r=0.1;
+	world_pos.Value(circle.x, circle.y, circle.z);
 }
 
 void Bird::Init() {
 //    state_ = &Bird::flyingUp;
-	wingLeft.resize(3);
+	birdMesh.resize(6);
 
-	wingLeft[0].pos[0] = wingLeft[0].pos[1] = wingLeft[0].pos[2] =0;
-	wingLeft[1].pos[0] = 0.1;
-	wingLeft[1].pos[1] = 0.1;
-	wingLeft[1].pos[2] = -0.1;
-	wingLeft[2].pos[0] = 0.13;
-	wingLeft[2].pos[1] = 0;
-	wingLeft[2].pos[2] = 0;
-	ndk_helper::Vec3 u = ndk_helper::Vec3(wingLeft[1].pos[0],wingLeft[1].pos[1],wingLeft[1].pos[2])
-	                     -ndk_helper::Vec3(wingLeft[0].pos[0],wingLeft[0].pos[1],wingLeft[0].pos[2]);
-	ndk_helper::Vec3 v = ndk_helper::Vec3(wingLeft[2].pos[0],wingLeft[2].pos[2],wingLeft[2].pos[2])
-	                     -ndk_helper::Vec3(wingLeft[0].pos[0],wingLeft[0].pos[1],wingLeft[0].pos[2]);
-	ndk_helper::Vec3 normal = u.Cross(v);
-	normal.Value(wingLeft[0].normal[0], wingLeft[0].normal[1], wingLeft[0].normal[2]);
-	normal.Value(wingLeft[1].normal[0], wingLeft[1].normal[1], wingLeft[1].normal[2]);
-	normal.Value(wingLeft[2].normal[0], wingLeft[2].normal[1], wingLeft[2].normal[2]);
-
-//	wingLeft[0] = ndk_helper::Vec3(0, 0, 0);
-//	wingLeft[1] = ndk_helper::Vec3(0.1, 0.1, -0.1);
-//	wingLeft[2] = ndk_helper::Vec3(0.13, 0, 0);
-	wingRight.resize(3);
-	normal = ndk_helper::Vec3(0, 0, 0).Cross(ndk_helper::Vec3(0.13, 0, 0));
-	wingRight[0].pos[0] = wingLeft[0].pos[1] = wingLeft[0].pos[2] =0;
-	wingRight[1].pos[0] = 0.1;
-	wingRight[1].pos[1] = 0.1;
-	wingRight[1].pos[2] = -0.1;
-	wingRight[2].pos[0] = 0.13;
-	wingRight[2].pos[1] = 0;
-	wingRight[2].pos[2] = 0;
-	u = ndk_helper::Vec3(wingRight[1].pos[0],wingRight[1].pos[1],wingRight[1].pos[2])
-	    -ndk_helper::Vec3(wingRight[0].pos[0],wingRight[0].pos[1],wingRight[0].pos[2]);
-	v = ndk_helper::Vec3(wingRight[2].pos[0],wingRight[2].pos[2],wingRight[2].pos[2])
-	    -ndk_helper::Vec3(wingRight[0].pos[0],wingRight[0].pos[1],wingRight[0].pos[2]);
+	ndk_helper::Vec3 u,v,normal;
+	vertices.clear();
+	normals.clear();
+	vertices.push_back(ndk_helper::Vec3(0, 0, 0));
+	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, BIRD_HEIGHT, BIRD_HEIGHT));
+	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, 0, 0));
+	u = vertices[1]-vertices[0];
+	v = vertices[2]-vertices[0];
 	normal = u.Cross(v);
-	normal.Value(wingRight[0].normal[0], wingRight[0].normal[1], wingRight[0].normal[2]);
-	normal.Value(wingRight[1].normal[0], wingRight[1].normal[1], wingRight[1].normal[2]);
-	normal.Value(wingRight[2].normal[0], wingRight[2].normal[1], wingRight[2].normal[2]);
+	normals.push_back(normal);
+	normals.push_back(normal);
+	normals.push_back(normal);
+	vertices.push_back(ndk_helper::Vec3(0, 0, 0));
+	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, BIRD_HEIGHT, -BIRD_HEIGHT));
+	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, 0, 0));
+	u = vertices[4]-vertices[3];
+	v = vertices[5]-vertices[3];
+	normal = u.Cross(v);
+	normals.push_back(normal);
+	normals.push_back(normal);
+	normals.push_back(normal);
 
-//	wingRight[0] = ndk_helper::Vec3(0, 0, 0);
-//	wingRight[1] = ndk_helper::Vec3(0.1, 0.1, 0.1);
-//	wingRight[2] = ndk_helper::Vec3(0.13, 0, 0);
+	birdMesh.reserve(vertices.size());
+	for (uint8_t i=0; i<vertices.size();i++) {
+		vertices[i].Value(birdMesh[i].pos[0], birdMesh[i].pos[1],birdMesh[i].pos[2]);
+		normals[i].Value(birdMesh[i].normal[0], birdMesh[i].normal[1],birdMesh[i].normal[2]);
+	}
+//	glGenBuffers(1, &vbo_);
+//	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+//	glBufferDataFromVector(GL_ARRAY_BUFFER, birdMesh, GL_STATIC_DRAW); // GL_DYNAMIC_DRAW GL_STATIC_DRAW
+//	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glGenBuffers(1, &vbo_left);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_left);
-	glBufferDataFromVector(GL_ARRAY_BUFFER, wingLeft, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glGenBuffers(1, &vbo_right);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_right);
-	glBufferDataFromVector(GL_ARRAY_BUFFER, wingRight, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	inertion = 0;
-	circle.r = 0.05;
-	world_pos.Value(circle.x, circle.y, circle.z);
+	bInit = true;
 }
 
 void Bird::Unload() {
-	if (vbo_left) {
-		glDeleteBuffers(1, &vbo_left);
-		vbo_left = 0;
-	}
-	if (vbo_right) {
-		glDeleteBuffers(1, &vbo_right);
-		vbo_right = 0;
-	}
-	if (ibo_) {
-		glDeleteBuffers(1, &ibo_);
-		ibo_ = 0;
+	if (vbo_) {
+		glDeleteBuffers(1, &vbo_);
+		vbo_ = 0;
 	}
 }
 
 void Bird::update() {
-//    world_pos.y += inertion;
-	decreaseInertion();
+	if (circle.y >0 || inertion>0) world_pos += ndk_helper::Vec3(0, inertion, 0);
+//	animateWings(inertion);
 	world_pos.Value(circle.x, circle.y, circle.z);
 	mat_model = ndk_helper::Mat4::Translation(circle.x, circle.y, circle.z);
+	decreaseInertion();
+}
+
+void Bird::animateWings(float _inert) {
+	float w;
+	ndk_helper::Quaternion q(vertices[1],0);
+	ndk_helper::Quaternion qr = q.RotationAxis(ndk_helper::Vec3(1,0,0), (_inert-INERTION_MIN)*1440.f);
+	qr.Value(birdMesh[1].pos[0], birdMesh[1].pos[1],birdMesh[1].pos[2], w);
+	q = ndk_helper::Quaternion(vertices[4],0);
+	qr = q.RotationAxis(ndk_helper::Vec3(1,0,0), (-_inert+INERTION_MIN)*1440.f);
+	qr.Value(birdMesh[4].pos[0], birdMesh[4].pos[1],birdMesh[4].pos[2], w);
+//	for (uint8_t i=0; i<vertices.size();i++) {
+//		vertices[i].Value(birdMesh[i].pos[0], birdMesh[i].pos[1],birdMesh[i].pos[2]);
+//		normals[i].Value(birdMesh[i].normal[0], birdMesh[i].normal[1],birdMesh[i].normal[2]);
+//	}
 }
 
 void Bird::draw() {
-//	glColor4f(0.8f,0.8f,0.8f,1.f);
-//    ofSetColor(200);
-//    ofDrawTriangle(0, 0, 0, 10, 10, 0, 0, 10, 0);
-//    #ifndef TARGET_OPENGLES
-//        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-//	glEnableClientState(GL_VERTEX_ARRAY);
+	if (!bInit) {
+		LOGI("[ERROR] Draw Bird without Init()");
+		return;
+	}
+	// Bind and map buffer.
 
-//	glPushMatrix();
-//	glTranslatef(world_pos[0], world_pos.y, world_pos.z);
-//	glPushMatrix();
-//	glTranslatef(0,0,0);
+	glGenBuffers(1, &vbo_);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+
+	glBufferDataFromVector(GL_ARRAY_BUFFER, birdMesh, GL_STATIC_DRAW); // GL_DYNAMIC_DRAW GL_STATIC_DRAW
+
+//	// Wait for fence (set below) before modifying buffer.
+//	glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT,
+//	                 GL_TIMEOUT_IGNORED);
+
+////	 Modify buffer, flush, and unmap.
+//	if (old_data) {
+//		memcpy(old_data, birdMesh.data(), birdMesh.size() * sizeof(VERTEX));
+//		glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, birdMesh.size() * sizeof(VERTEX));
+//	}
+//	glUnmapBuffer(GL_ARRAY_BUFFER);
+//	glBindBuffer(GL_ARRAY_BUFFER,0);
+//
+//	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+
+	// Pass the vertex data
+	glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VERTEX),
+	                      BUFFER_OFFSET(0));
+	glEnableVertexAttribArray(ATTRIB_VERTEX);
+
+	glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(VERTEX),
+	                      BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(ATTRIB_NORMAL);
+
+	glDrawArrays(GL_TRIANGLES, 0, birdMesh.size());
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &vbo_);
+//	fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 //	glRotatef((inertion-INERTION_MIN)*1440.f, 1, 0, 0);
 
-//	glVertexPointer(3, GL_FLOAT, sizeof(ndk_helper::Vec3), &wingRight[0]);
-//	glDrawArrays(GL_TRIANGLES, 0, 3);
-//	glPopMatrix();
-
-//	glPushMatrix();
-//	glTranslatef(0,0,0);
 //	glRotatef((-inertion+INERTION_MIN)*1440.f, 1, 0, 0);
 
-//	glVertexPointer(3, GL_FLOAT, sizeof(ndk_helper::Vec3), &wingLeft[0]);
-//	glDrawArrays(GL_TRIANGLES, 0, 3);
-//	glPopMatrix();
-
-
-//	glPopMatrix();
 }
 
 
