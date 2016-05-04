@@ -6,7 +6,6 @@
 
 #include "NDKHelper.h"
 #include "Utils.hpp"
-#include "CylinderModel.hpp"
 
 //using namespace cylinderNamespace;
 
@@ -87,10 +86,8 @@ public:
 
 private:
     int32_t num_indices_;
-    int32_t num_vertices_;
     GLuint ibo_;
     GLuint vbo_;
-	GLuint nbo_;
 
 	bool bLoaded, bBind;
 

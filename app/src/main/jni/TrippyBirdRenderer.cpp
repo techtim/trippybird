@@ -77,8 +77,6 @@ void TrippyBirdRenderer::UpdateViewport() {
 	int32_t viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
 
-//	const float CAM_NEAR = 0.5f;
-//	const float CAM_FAR = 100.f;
 	if (viewport[2] < viewport[3]) {
 		float aspect =
 				static_cast<float>(viewport[2]) / static_cast<float>(viewport[3]);
@@ -114,7 +112,10 @@ void TrippyBirdRenderer::Update(float fTime) {
 								ndk_helper::Vec3(0.f, 1.f, 0.f));
 
 	bird_.update();
-	if (bird_.getColliding()) setPause(true);
+	if (bird_.getColliding()) {
+		setPause(true);
+		return;
+	}
 
 	for (auto it=obstacles_.begin(); it<obstacles_.end(); ) {
 		it->update(fTime);
@@ -165,6 +166,7 @@ void TrippyBirdRenderer::Render() {
 
 	// --- Draw walls
 
+	// Generate gradient from hue with offset
 	float r,g,b;
 	ndk_helper::Vec3 col = hueToRGB(gradientPos);
 	col.Value(r,g,b);
@@ -195,7 +197,8 @@ void TrippyBirdRenderer::Render() {
 	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
 	plane_.draw();
 
-	// Draw Obstacles with Cylinders
+	// --- Draw Obstacles with Cylinders
+
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 	cylinderObj_.bind();
 	for (auto &obst:obstacles_ ) {
@@ -207,7 +210,6 @@ void TrippyBirdRenderer::Render() {
 		glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 		cylinderObj_.draw();
 	}
-
 	cylinderObj_.unbind();
 
 	// --- Draw Bird
@@ -227,23 +229,10 @@ void TrippyBirdRenderer::Render() {
 
 	glUniform3f(shader_param_.material_ambient_, materialBird.ambient_color[0],
 	            materialBird.ambient_color[1], materialBird.ambient_color[2]);
+	// draw bird with cylinder shader way for now
 //	glUniform1i(shader_param_.object_type, TYPE_BIRD);
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 	bird_.draw();
-
-
-
-	if (bCameraActive) {
-		ndk_helper::Mat4 mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0);
-		ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
-
-		glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
-		                   mat_vp.Ptr());
-		glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
-		glUniform1i(shader_param_.object_type, TYPE_LINE);
-		drawAxis(1.f);
-	}
-
 
 }
 

@@ -64,7 +64,7 @@ void Bird::Unload() {
 }
 
 void Bird::update() {
-	if (circle.y >0 || inertion>0) {
+	if ((circle.y >0 && circle.y < 1.f) || inertion>0) {
 		world_pos += ndk_helper::Vec3(0, inertion, 0);
 	} else {
 		bColliding = true;
@@ -76,12 +76,13 @@ void Bird::update() {
 	circle.y += BIRD_HEIGHT/2;
 	decreaseInertion();
 }
+
 void Bird::reset() {
 	world_pos = ndk_helper::Vec3(-0.6, 0.5, 0);
 	bColliding = false;
 }
-void Bird::animateWings(float _inert) {
 
+void Bird::animateWings(float _inert) {
 	birdMesh[1].pos[1] = BIRD_HEIGHT-_inert*4.f;
 	birdMesh[4].pos[1] = BIRD_HEIGHT-_inert*4.f;
 }
@@ -126,9 +127,6 @@ void Bird::draw() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &vbo_);
 //	fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-//	glRotatef((inertion-INERTION_MIN)*1440.f, 1, 0, 0);
-
-//	glRotatef((-inertion+INERTION_MIN)*1440.f, 1, 0, 0);
 
 }
 

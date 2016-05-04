@@ -27,7 +27,6 @@
 #include <cpu-features.h>
 
 #include "TrippyBirdRenderer.h"
-#include "CylinderModel.hpp"
 #include "NDKHelper.h"
 
 //-------------------------------------------------------------------------
@@ -147,7 +146,7 @@ int Engine::InitDisplay() {
   glEnable(GL_DEPTH_TEST);
 //  glDepthFunc(GL_LEQUAL);
   glDepthFunc(GL_LESS);
-//  GL_SMOOTH
+
   // Note that screen size might have been changed
   glViewport(0, 0, gl_context_->GetScreenWidth(),
              gl_context_->GetScreenHeight());
@@ -170,7 +169,7 @@ void Engine::DrawFrame() {
   renderer_.Update(monitor_.GetCurrentTime());
 
   // Just fill the screen with a color.
-  glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   renderer_.Render();
 
@@ -201,8 +200,8 @@ int32_t Engine::HandleInput(android_app* app, AInputEvent* event) {
     ndk_helper::GESTURE_STATE tapState = eng->tap_detector_.Detect(event);
     ndk_helper::GESTURE_STATE doubleTapState =
             eng->doubletap_detector_.Detect(event);
-    ndk_helper::GESTURE_STATE dragState = eng->drag_detector_.Detect(event);
-    ndk_helper::GESTURE_STATE pinchState = eng->pinch_detector_.Detect(event);
+//    ndk_helper::GESTURE_STATE dragState = eng->drag_detector_.Detect(event);
+//    ndk_helper::GESTURE_STATE pinchState = eng->pinch_detector_.Detect(event);
 
     // Double tap detector has a priority over other detectors
     if (doubleTapState == ndk_helper::GESTURE_STATE_ACTION) {
@@ -211,41 +210,42 @@ int32_t Engine::HandleInput(android_app* app, AInputEvent* event) {
     } else if (tapState == ndk_helper::GESTURE_STATE_ACTION || tapState == ndk_helper::GESTURE_STATE_MOVE) {
         eng->renderer_.setPause(false);
         eng->renderer_.onTap();
-    } else {
-      // Handle drag state
-      if (dragState & ndk_helper::GESTURE_STATE_START) {
-        // Otherwise, start dragging
-        ndk_helper::Vec2 v;
-        eng->drag_detector_.GetPointer(v);
-        eng->TransformPosition(v);
-        eng->tap_camera_.BeginDrag(v);
-      } else if (dragState & ndk_helper::GESTURE_STATE_MOVE) {
-        ndk_helper::Vec2 v;
-        eng->drag_detector_.GetPointer(v);
-        eng->TransformPosition(v);
-        eng->tap_camera_.Drag(v);
-      } else if (dragState & ndk_helper::GESTURE_STATE_END) {
-        eng->tap_camera_.EndDrag();
-      }
-
-      // Handle pinch state
-      if (pinchState & ndk_helper::GESTURE_STATE_START) {
-        // Start new pinch
-        ndk_helper::Vec2 v1;
-        ndk_helper::Vec2 v2;
-        eng->pinch_detector_.GetPointers(v1, v2);
-	      eng->renderer_.toogleCamera();
-      } else if (pinchState & ndk_helper::GESTURE_STATE_MOVE) {
-        // Multi touch
-        // Start new pinch
-        ndk_helper::Vec2 v1;
-        ndk_helper::Vec2 v2;
-        eng->pinch_detector_.GetPointers(v1, v2);
-        eng->TransformPosition(v1);
-        eng->TransformPosition(v2);
-        eng->tap_camera_.Pinch(v1, v2);
-      }
     }
+//    else {
+//      // Handle drag state
+//      if (dragState & ndk_helper::GESTURE_STATE_START) {
+//        // Otherwise, start dragging
+//        ndk_helper::Vec2 v;
+//        eng->drag_detector_.GetPointer(v);
+//        eng->TransformPosition(v);
+//        eng->tap_camera_.BeginDrag(v);
+//      } else if (dragState & ndk_helper::GESTURE_STATE_MOVE) {
+//        ndk_helper::Vec2 v;
+//        eng->drag_detector_.GetPointer(v);
+//        eng->TransformPosition(v);
+//        eng->tap_camera_.Drag(v);
+//      } else if (dragState & ndk_helper::GESTURE_STATE_END) {
+//        eng->tap_camera_.EndDrag();
+//      }
+//
+//      // Handle pinch state
+//      if (pinchState & ndk_helper::GESTURE_STATE_START) {
+//        // Start new pinch
+//        ndk_helper::Vec2 v1;
+//        ndk_helper::Vec2 v2;
+//        eng->pinch_detector_.GetPointers(v1, v2);
+//	      eng->renderer_.toogleCamera();
+//      } else if (pinchState & ndk_helper::GESTURE_STATE_MOVE) {
+//        // Multi touch
+//        // Start new pinch
+//        ndk_helper::Vec2 v1;
+//        ndk_helper::Vec2 v2;
+//        eng->pinch_detector_.GetPointers(v1, v2);
+//        eng->TransformPosition(v1);
+//        eng->TransformPosition(v2);
+//        eng->tap_camera_.Pinch(v1, v2);
+//      }
+//    }
     return 1;
   }
   return 0;

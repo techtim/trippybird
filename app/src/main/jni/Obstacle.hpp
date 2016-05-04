@@ -9,7 +9,7 @@
 #include "CylinderObject.hpp"
 
 #define OBSTACLES_MIN_HEIGHT .2f
-#define OBSTACLES_DISTANCE 0.4f
+#define OBSTACLES_DISTANCE 0.3f
 #define OBSTACLES_SPEED 0.003
 
 class Obstacle {
