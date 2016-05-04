@@ -21,4 +21,4 @@ Getting Started
 
 Screenshots
 -----------
-![screenshot](screenshot.png)
+![screenshot](trippy_screenshot.png)
