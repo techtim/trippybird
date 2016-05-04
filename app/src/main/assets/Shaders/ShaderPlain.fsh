@@ -24,6 +24,8 @@ uniform mediump vec4       vMaterialSpecular;
 uniform lowp int        iObjectType;
 
 varying lowp vec4 colorDiffuse;
+uniform lowp vec4 colorGradient1;
+uniform lowp vec4 colorGradient2;
 
 #if USE_PHONG
 uniform highp vec3      vLight0;
@@ -32,6 +34,12 @@ varying mediump vec3 normal;
 #else
 varying lowp vec4 colorSpecular;
 #endif
+
+//vec3 hue2rgb(float hue) {
+//    return clamp(
+//            abs(mod(hue * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0,
+//            0.0, 1.0);
+//}
 
 void drawCylinder()
 {
@@ -52,10 +60,18 @@ void drawLine() {
     gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
+void drawPlane() {
+//    lowp vec4 color1 = vec4(hue2rgb(1.f),1);
+//    lowp vec4 color2 = vec4(hue2rgb(.5.f),1);
+    gl_FragColor = mix(colorGradient1,colorGradient2, position.x);
+}
+
 void main(void) {
     if (iObjectType == 0) {
         drawCylinder();
     } else if (iObjectType == 2) {
         drawLine();
+    } else if (iObjectType == 3) {
+        drawPlane();
     }
 }

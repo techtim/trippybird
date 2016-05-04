@@ -14,7 +14,8 @@
 TrippyBirdRenderer::TrippyBirdRenderer()
 		:bCameraActive(false),
 		bGamePaused(true),
-		bVerticalView(false)
+		bVerticalView(false),
+		 gradientPos(0)
 {
 	setupWorld();
 }
@@ -36,7 +37,7 @@ void TrippyBirdRenderer::Init() {
 
 	bird_.Init();
 	cylinderObj_.Init();
-
+	plane_.Init();
 	UpdateViewport();
 //    ndk_helper::Vec4 scale = ndk_helper::Vec4(10.f,10.f,10.f,1.f);
 	mat_model_ = ndk_helper::Mat4::Translation(0, 0, 0);
@@ -95,6 +96,9 @@ void TrippyBirdRenderer::UpdateViewport() {
 
 void TrippyBirdRenderer::Unload() {
 	cylinderObj_.Unload();
+	plane_.Unload();
+	bird_.Unload();
+
 	if (shader_param_.program_) {
 		glDeleteProgram(shader_param_.program_);
 		shader_param_.program_ = 0;
@@ -128,6 +132,8 @@ void TrippyBirdRenderer::Update(float fTime) {
 		}
 	}
 
+	gradientPos+=OBSTACLES_SPEED*0.1;
+	if (gradientPos>=1.f) gradientPos=0;
 
 	if (bCameraActive && camera_) {
 		camera_->Update();
@@ -157,12 +163,45 @@ void TrippyBirdRenderer::Render() {
 
 	glUniform3f(shader_param_.light0_, bVerticalView? 25.f:-25.f, .5f, 25.f);
 
+	// --- Draw walls
+
+	float r,g,b;
+	ndk_helper::Vec3 col = hueToRGB(gradientPos);
+	col.Value(r,g,b);
+	glUniform4f(shader_param_.color_gradient_1, r,g,b,1.f);
+	col = hueToRGB(gradientPos+0.1);
+	col.Value(r,g,b);
+	glUniform4f(shader_param_.color_gradient_2, r,g,b,1.f);
+
+	glUniform1i(shader_param_.object_type, TYPE_PLANE);
+	ndk_helper::Mat4 mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0);
+	ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
+	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
+	                   mat_vp.Ptr());
+	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
+	plane_.draw();
+
+	mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,1,0);
+	mat_vp = mat_projection_ * mat_v;
+	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
+	                   mat_vp.Ptr());
+	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
+	plane_.draw();
+
+	mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0) * ndk_helper::Mat4::RotationX(90) * ndk_helper::Mat4::Translation(0,0,1.f);
+	mat_vp = mat_projection_ * mat_v;
+	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
+	                   mat_vp.Ptr());
+	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
+	plane_.draw();
+
+
 	// Draw Obstacles with Cylinders
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 	cylinderObj_.bind();
 	for (auto &obst:obstacles_ ) {
-		ndk_helper::Mat4 mat_v = mat_view_ * obst.getModelMatrix();
-		ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
+		mat_v = mat_view_ * obst.getModelMatrix();
+		mat_vp = mat_projection_ * mat_v;
 		glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 		                   mat_vp.Ptr());
 		glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
@@ -174,8 +213,8 @@ void TrippyBirdRenderer::Render() {
 
 	// --- Draw Bird
 
-	ndk_helper::Mat4 mat_v = mat_view_ * bird_.getModelMatrix();
-	ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
+	mat_v = mat_view_ * bird_.getModelMatrix();
+	mat_vp = mat_projection_ * mat_v;
 
 	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 	                   mat_vp.Ptr());
@@ -192,8 +231,8 @@ void TrippyBirdRenderer::Render() {
 //	glUniform1i(shader_param_.object_type, TYPE_BIRD);
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 	bird_.draw();
-	glUniform1i(shader_param_.object_type, TYPE_LINE);
-	drawAxis(1.f);
+
+
 
 	if (bCameraActive) {
 		ndk_helper::Mat4 mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0);
@@ -275,7 +314,8 @@ bool TrippyBirdRenderer::LoadShaders(SHADER_PARAMS* params, const char* strVsh,
 	params->material_specular_ =
 			glGetUniformLocation(program, "vMaterialSpecular");
 	params->object_type = glGetUniformLocation(program, "iObjectType");
-
+	params->color_gradient_1 = glGetUniformLocation(program, "colorGradient1");
+	params->color_gradient_2 = glGetUniformLocation(program, "colorGradient2");
 	// Release vertex and fragment shaders
 	if (vert_shader) glDeleteShader(vert_shader);
 	if (frag_shader) glDeleteShader(frag_shader);

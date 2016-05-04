@@ -19,10 +19,10 @@ public:
 
 	void Init() {
 		VERTEX vertices[] = {
-				{{1,0,1},   {0.f,1.f,0.f}},
-				{{-1,0,1},  {0.f,1.f,0.f}},
-				{{1,0,-1},  {0.f,1.f,0.f}},
-				{{-1,0,-1}, {0.f,1.f,0.f}},
+				{{2,0,2},   {0.f,1.f,0.f}},
+				{{-2,0,2},  {0.f,1.f,0.f}},
+				{{2,0,-2},  {0.f,1.f,0.f}},
+				{{-2,0,-2}, {0.f,1.f,0.f}},
 		};
 		glGenBuffers(1, &vbo_);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
@@ -30,6 +30,13 @@ public:
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		bInit = true;
+	}
+
+	void Unload() {
+		if (vbo_) {
+			glDeleteBuffers(1, &vbo_);
+			vbo_ = 0;
+		}
 	}
 
 	void draw() {

@@ -7,6 +7,7 @@
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 #include <vector>
+#include <math.h>
 #include <stdlib.h>
 
 #define FLT_EPSILON 1.19209290E-07F
@@ -36,6 +37,8 @@ struct SHADER_PARAMS {
     GLuint matrix_projection_;
     GLuint matrix_view_;
 	GLuint object_type;
+	GLuint color_gradient_1;
+	GLuint color_gradient_2;
 };
 
 struct CYLINDER_MATERIALS {
@@ -190,6 +193,42 @@ inline void drawAxis( float size ) {
 	glDeleteBuffers(1, &vbo_);
 
 }
+
+static float HueToRGB(float v1, float v2, float vH) {
+	if (vH < 0)
+		vH += 1;
+
+	if (vH > 1)
+		vH -= 1;
+
+	if ((6 * vH) < 1)
+		return (v1 + (v2 - v1) * 6 * vH);
+
+	if ((2 * vH) < 1)
+		return v2;
+
+	if ((3 * vH) < 2)
+		return (v1 + (v2 - v1) * ((2.0f / 3) - vH) * 6);
+
+	return v1;
+}
+
+inline ndk_helper::Vec3 hueToRGB(float hue) {
+	float v1, v2;
+
+//	v2 = (hsl.L < 0.5) ? (hsl.L * (1 + hsl.S)) : ((hsl.L + hsl.S) - (hsl.L * hsl.S));
+//	v1 = 2 * hsl.L - v2;
+	v2 = ((0.5 + 1.f) - (0.5 * 1.f));
+	v1 = 2 * 0.5 - v2;
+	ndk_helper::Vec3 color(
+		HueToRGB(v1, v2, hue + (1.0f / 3)),
+		HueToRGB(v1, v2, hue),
+		HueToRGB(v1, v2, hue - (1.0f / 3))
+	);
+	return color;
+}
+
+
 
 struct PackedVertex{
     ndk_helper::Vec3 position;

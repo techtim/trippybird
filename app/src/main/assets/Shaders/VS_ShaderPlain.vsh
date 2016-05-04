@@ -72,10 +72,17 @@ void drawLine() {
     gl_Position = uPMatrix * p;
 }
 
+void drawPlane() {
+    drawCylinder();
+}
+
 void main(void) {
     if (iObjectType == 0) {
         drawCylinder();
-    } else if (iObjectType == 2) {
+    }
+    else if (iObjectType == 2) {
         drawLine();
+    } else if (iObjectType == 3) {
+        drawPlane();
     }
 }

@@ -32,6 +32,7 @@
 #include "CylinderObject.hpp"
 #include "Bird.hpp"
 #include "Obstacle.hpp"
+#include "Plane.hpp"
 
 class TrippyBirdRenderer {
  public:
@@ -66,6 +67,8 @@ private:
 	CYLINDER_MATERIALS materialCyl;
     Bird            bird_;
 	CYLINDER_MATERIALS materialBird;
+	Plane plane_;
+	float gradientPos;
 
     std::vector<Obstacle> obstacles_;
     float obstacles_dist;

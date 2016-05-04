@@ -170,7 +170,7 @@ void Engine::DrawFrame() {
   renderer_.Update(monitor_.GetCurrentTime());
 
   // Just fill the screen with a color.
-  glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+  glClearColor(0.2f, 0.2f, 0.2f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   renderer_.Render();
 
