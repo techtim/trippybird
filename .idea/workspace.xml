@@ -10,17 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c01a998d-53be-44b1-9692-b044d31ca2a1" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/src/main/jni/Cube.hpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/src/main/jni/CylinderModel.hpp" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/sample/trippybird/TrippyBirdNativeActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/sample/trippybird/TrippyBirdNativeActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/jni/Bird.cpp" afterPath="$PROJECT_DIR$/app/src/main/jni/Bird.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/jni/CylinderObject.hpp" afterPath="$PROJECT_DIR$/app/src/main/jni/CylinderObject.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/jni/Obstacle.hpp" afterPath="$PROJECT_DIR$/app/src/main/jni/Obstacle.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/jni/TrippyBirdNativeActivity.cpp" afterPath="$PROJECT_DIR$/app/src/main/jni/TrippyBirdNativeActivity.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/jni/TrippyBirdRenderer.cpp" afterPath="$PROJECT_DIR$/app/src/main/jni/TrippyBirdRenderer.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/layout/widgets.xml" afterPath="$PROJECT_DIR$/app/src/main/res/layout/widgets.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" />
     </list>
     <ignored path="TrippyBird.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -5696,7 +5686,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-17" y="-1068" width="1741" height="1038" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -5708,7 +5698,7 @@
       <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28199565" sideWeight="0.48852265" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32321042" sideWeight="0.45673925" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28199565" sideWeight="0.51147735" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28199565" sideWeight="0.51147735" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1981402" sideWeight="0.51552796" order="6" side_tool="true" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32823366" sideWeight="0.51573676" order="9" side_tool="true" content_ui="tabs" />
