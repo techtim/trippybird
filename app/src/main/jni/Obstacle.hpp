@@ -9,8 +9,8 @@
 #include "CylinderObject.hpp"
 
 #define OBSTACLES_MIN_HEIGHT .2f
-#define OBSTACLES_DISTANCE 0.3f
-#define OBSTACLES_SPEED 0.002
+#define OBSTACLES_DISTANCE 0.4f
+#define OBSTACLES_SPEED 0.003
 
 class Obstacle {
 public:
@@ -41,6 +41,14 @@ public:
 		mat_model = ndk_helper::Mat4::Translation(pos);
 	}
 
+	void updateRectWithPos(ndk_helper::Vec3 & _pos) {
+		_pos.Value(rect.x, rect.y, rect.z);
+		rect.x -= CYLINDER_RADIUS;
+		rect.y -= CYLINDER_HEIGHT;
+		rect.width = CYLINDER_RADIUS*2;
+		rect.height = CYLINDER_HEIGHT;
+	}
+
 	Obstacle createPair() {
 		return Obstacle(pos+ndk_helper::Vec3(0,OBSTACLES_DISTANCE+CYLINDER_HEIGHT,0));
 	}
@@ -62,10 +70,5 @@ private:
 	ndk_helper::Vec3 pos;
 	RECT_WH rect;
 	float last_time_;
-	void updateRectWithPos(ndk_helper::Vec3 & _pos) {
-		_pos.Value(rect.x, rect.y, rect.z);
-		rect.x-=CYLINDER_RADIUS;
-		rect.width = CYLINDER_RADIUS*2;
-		rect.height = rect.y>1.f ? rect.y-1.f: rect.y;
-	}
+
 };

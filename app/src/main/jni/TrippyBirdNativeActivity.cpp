@@ -142,9 +142,12 @@ int Engine::InitDisplay() {
 
   // Initialize GL state.
 //  glEnable(GL_CULL_FACE);
+//  glFrontFace(GL_CW);
+//  glCullFace(GL_BACK);
   glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
-
+//  glDepthFunc(GL_LEQUAL);
+  glDepthFunc(GL_LESS);
+//  GL_SMOOTH
   // Note that screen size might have been changed
   glViewport(0, 0, gl_context_->GetScreenWidth(),
              gl_context_->GetScreenHeight());
@@ -205,7 +208,8 @@ int32_t Engine::HandleInput(android_app* app, AInputEvent* event) {
     if (doubleTapState == ndk_helper::GESTURE_STATE_ACTION) {
       // Detect double tap
       eng->renderer_.onDoubleTap();
-    } else if (tapState == ndk_helper::GESTURE_STATE_ACTION) {
+    } else if (tapState == ndk_helper::GESTURE_STATE_ACTION || tapState == ndk_helper::GESTURE_STATE_MOVE) {
+        eng->renderer_.setPause(false);
         eng->renderer_.onTap();
     } else {
       // Handle drag state

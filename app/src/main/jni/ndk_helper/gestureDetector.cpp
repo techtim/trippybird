@@ -50,6 +50,7 @@ GESTURE_STATE TapDetector::Detect(const AInputEvent* motion_event) {
       down_pointer_id_ = AMotionEvent_getPointerId(motion_event, 0);
       down_x_ = AMotionEvent_getX(motion_event, 0);
       down_y_ = AMotionEvent_getY(motion_event, 0);
+          return GESTURE_STATE_MOVE;
       break;
     case AMOTION_EVENT_ACTION_UP: {
       int64_t eventTime = AMotionEvent_getEventTime(motion_event);

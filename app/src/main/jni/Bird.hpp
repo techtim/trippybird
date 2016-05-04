@@ -45,7 +45,7 @@ public:
 	ndk_helper::Vec3 getPosition() { return world_pos; }
 	ndk_helper::Mat4 getModelMatrix() { return ndk_helper::Mat4::Translation(world_pos); }
 	void setState(State  new_state) { state_ = new_state; }
-
+	void reset();
 	CIRCLE & getCircle() { return circle; }
 private:
 	State state_;

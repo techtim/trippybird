@@ -24,21 +24,6 @@
 //--------------------------------------------------------------------------------
 // Include files
 //--------------------------------------------------------------------------------
-#include <jni.h>
-#include <errno.h>
-
-#include <vector>
-#include <math.h>
-#include <stdlib.h>
-
-#include <EGL/egl.h>
-#include <GLES/gl.h>
-
-#include <android/sensor.h>
-#include <android/log.h>
-#include <android_native_app_glue.h>
-#include <android/native_window_jni.h>
-#include <cpu-features.h>
 #include "NDKHelper.h"
 
 #define CLASS_NAME "android/app/NativeActivity"
@@ -61,8 +46,10 @@ class TrippyBirdRenderer {
     void Unload();
     void UpdateViewport();
 
-	void toogleCamera() { bCameraActive = !bCameraActive; }
-  private:
+	void toogleCamera() { bCameraActive = !bCameraActive; camera_->Reset(true);}
+	void setPause(bool isPaused);
+	void setupWorld();
+private:
 
     SHADER_PARAMS shader_param_;
     bool LoadShaders(SHADER_PARAMS* params, const char* strVsh,
@@ -73,10 +60,12 @@ class TrippyBirdRenderer {
     ndk_helper::Mat4 mat_model_;
 
     ndk_helper::TapCamera* camera_;
-	bool bCameraActive;
+	bool bCameraActive, bGamePaused, bVerticalView;
 
     CylinderObject  cylinderObj_;
+	CYLINDER_MATERIALS materialCyl;
     Bird            bird_;
+	CYLINDER_MATERIALS materialBird;
 
     std::vector<Obstacle> obstacles_;
     float obstacles_dist;
@@ -87,6 +76,9 @@ class TrippyBirdRenderer {
 	const float CAM_X = 0.f;
 	const float CAM_Y = 0.5f;
 	const float CAM_Z = 1.f;
+	const float CAM_VERT_X = -1.5f;
+	const float CAM_VERT_Y = 0.5f;
+	const float CAM_VERT_Z = 1.f;
 
 };
 

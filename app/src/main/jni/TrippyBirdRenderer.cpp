@@ -12,16 +12,11 @@
 // Ctor
 //--------------------------------------------------------------------------------
 TrippyBirdRenderer::TrippyBirdRenderer()
-		:bCameraActive(false)
+		:bCameraActive(false),
+		bGamePaused(true),
+		bVerticalView(false)
 {
-	srand(time(NULL));
-	obstacles_dist = cylinderObj_.getRadius()*12;
-	int num_obstacles = ceil((2.5f - 0.5)/obstacles_dist);
-	for (int i=0; i<num_obstacles; i++) {
-		obstacles_.push_back(Obstacle(i*obstacles_dist));
-		obstacles_.push_back(obstacles_[obstacles_.size()-1].createPair());
-	}
-
+	setupWorld();
 }
 
 //--------------------------------------------------------------------------------
@@ -31,13 +26,9 @@ TrippyBirdRenderer::~TrippyBirdRenderer() { Unload(); }
 
 void TrippyBirdRenderer::Init() {
 	// Settings
-//  glFrontFace(GL_CW);
-//    glCullFace(GL_BACK);
-//	glDisable(GL_CULL_FACE);
-//	glEnable(GL_DEPTH_TEST);
 
 // Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
+
 
 	// Load shader
 	LoadShaders(&shader_param_, "Shaders/VS_ShaderPlain.vsh",
@@ -45,14 +36,39 @@ void TrippyBirdRenderer::Init() {
 
 	bird_.Init();
 	cylinderObj_.Init();
-	srand(time(NULL));
 
 	UpdateViewport();
 //    ndk_helper::Vec4 scale = ndk_helper::Vec4(10.f,10.f,10.f,1.f);
 	mat_model_ = ndk_helper::Mat4::Translation(0, 0, 0);
+	mat_view_ = ndk_helper::Mat4::LookAt(ndk_helper::Vec3(CAM_X, CAM_Y, CAM_Z),
+	                                     ndk_helper::Vec3(0.f, .5f, 0.f),
+	                                     ndk_helper::Vec3(0.f, 1.f, 0.f));
+//	ndk_helper::Mat4 mat = ndk_helper::Mat4::RotationX(0);
+	mat_view_ = mat_view_ * mat_model_;
+}
 
-	ndk_helper::Mat4 mat = ndk_helper::Mat4::RotationX(0);
-	mat_model_ = mat * mat_model_;
+void TrippyBirdRenderer::setupWorld() {
+	srand(time(NULL));
+	obstacles_dist = cylinderObj_.getRadius()*12;
+	int num_obstacles = ceil((2.5f - 0.5)/obstacles_dist);
+	obstacles_.clear();
+	for (int i=0; i<num_obstacles; i++) {
+		obstacles_.push_back(Obstacle(i*obstacles_dist));
+		obstacles_.push_back(obstacles_[obstacles_.size()-1].createPair());
+	}
+	bird_.reset();
+
+	materialCyl = {
+			{.7f, 0.2f, 0.7f}, {1.0f, 1.0f, 7.0f, 10.f}, {0.4f, 0.0f, 0.6f}, };
+	materialBird = {
+			{.2f, 0.2f, 0.7f}, {1.0f, 1.0f, 7.0f, 10.f}, {0.2f, 0.4f, 0.6f}, };
+}
+
+void TrippyBirdRenderer::setPause(bool isPaused) {
+	if (bGamePaused == true && !isPaused) {
+		setupWorld();
+	}
+	bGamePaused = isPaused;
 }
 
 void TrippyBirdRenderer::UpdateViewport() {
@@ -60,18 +76,20 @@ void TrippyBirdRenderer::UpdateViewport() {
 	int32_t viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
 
-	const float CAM_NEAR = 0.5f;
-	const float CAM_FAR = 100.f;
+//	const float CAM_NEAR = 0.5f;
+//	const float CAM_FAR = 100.f;
 	if (viewport[2] < viewport[3]) {
 		float aspect =
 				static_cast<float>(viewport[2]) / static_cast<float>(viewport[3]);
 		mat_projection_ =
 				ndk_helper::Mat4::Perspective(aspect, 1.0f, CAM_NEAR, CAM_FAR);
+		bVerticalView = true;
 	} else {
 		float aspect =
 				static_cast<float>(viewport[3]) / static_cast<float>(viewport[2]);
 		mat_projection_ =
 				ndk_helper::Mat4::Perspective(1.0f, aspect, CAM_NEAR, CAM_FAR);
+		bVerticalView = false;
 	}
 }
 
@@ -84,16 +102,22 @@ void TrippyBirdRenderer::Unload() {
 }
 
 void TrippyBirdRenderer::Update(float fTime) {
-	const float CAM_X = 0.f;
-	const float CAM_Y = 0.5f;
-	const float CAM_Z = 1.f;
+	if (bGamePaused) return;
 
-	mat_view_ = ndk_helper::Mat4::LookAt(ndk_helper::Vec3(CAM_X, CAM_Y, CAM_Z),
-	                                     ndk_helper::Vec3(0.f, .5f, 0.f),
-	                                     ndk_helper::Vec3(0.f, 1.f, 0.f));
+	mat_view_ = ndk_helper::Mat4::LookAt(
+				bVerticalView? ndk_helper::Vec3(CAM_VERT_X, CAM_VERT_Y, CAM_VERT_Z) : ndk_helper::Vec3(CAM_X, CAM_Y, CAM_Z),
+								ndk_helper::Vec3(0.f, 0.5f, 0.f),
+								ndk_helper::Vec3(0.f, 1.f, 0.f));
+
+	bird_.update();
+	if (bird_.getColliding()) setPause(true);
 
 	for (auto it=obstacles_.begin(); it<obstacles_.end(); ) {
 		it->update(fTime);
+		if (intersects(bird_.getCircle(), it->getRect())) {
+			bird_.setColliding(true);
+			setPause(true);
+		}
 		if (it->getRect().x+it->getRect().width < -1.25f) {
 			it = obstacles_.erase(it);
 			it = obstacles_.erase(it);
@@ -104,7 +128,6 @@ void TrippyBirdRenderer::Update(float fTime) {
 		}
 	}
 
-	bird_.update();
 
 	if (bCameraActive && camera_) {
 		camera_->Update();
@@ -121,23 +144,18 @@ void TrippyBirdRenderer::Render() {
 	glUseProgram(shader_param_.program_);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	CYLINDER_MATERIALS material = {
-			{.7f, 0.2f, 0.7f}, {1.0f, 1.0f, 7.0f, 10.f}, {0.4f, 0.0f, 0.6f}, };
-
 	// update uniforms
-	glUniform4f(shader_param_.material_diffuse_, material.diffuse_color[0],
-	            material.diffuse_color[1], material.diffuse_color[2], 1.f);
+	glUniform4f(shader_param_.material_diffuse_, materialCyl.diffuse_color[0],
+	            materialCyl.diffuse_color[1], materialCyl.diffuse_color[2], 1.f);
 
-	glUniform4f(shader_param_.material_specular_, material.specular_color[0],
-	            material.specular_color[1], material.specular_color[2],
-	            material.specular_color[3]);
-	//
-	// using glUniform3fv here was troublesome
-	//
-	glUniform3f(shader_param_.material_ambient_, material.ambient_color[0],
-	            material.ambient_color[1], material.ambient_color[2]);
+	glUniform4f(shader_param_.material_specular_, materialCyl.specular_color[0],
+	            materialCyl.specular_color[1], materialCyl.specular_color[2],
+	            materialCyl.specular_color[3]);
 
-	glUniform3f(shader_param_.light0_, -25.f, .5f, 25.f);
+	glUniform3f(shader_param_.material_ambient_, materialCyl.ambient_color[0],
+	            materialCyl.ambient_color[1], materialCyl.ambient_color[2]);
+
+	glUniform3f(shader_param_.light0_, bVerticalView? 25.f:-25.f, .5f, 25.f);
 
 	// Draw Obstacles with Cylinders
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
@@ -148,21 +166,34 @@ void TrippyBirdRenderer::Render() {
 		glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 		                   mat_vp.Ptr());
 		glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
-
+		glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 		cylinderObj_.draw();
 	}
 
 	cylinderObj_.unbind();
 
-	// Draw Bird
+	// --- Draw Bird
+
 	ndk_helper::Mat4 mat_v = mat_view_ * bird_.getModelMatrix();
 	ndk_helper::Mat4 mat_vp = mat_projection_ * mat_v;
 
 	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 	                   mat_vp.Ptr());
 	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
+	glUniform4f(shader_param_.material_diffuse_, materialBird.diffuse_color[0],
+	            materialBird.diffuse_color[1], materialBird.diffuse_color[2], 1.f);
+
+	glUniform4f(shader_param_.material_specular_, materialBird.specular_color[0],
+	            materialBird.specular_color[1], materialBird.specular_color[2],
+	            materialBird.specular_color[3]);
+
+	glUniform3f(shader_param_.material_ambient_, materialBird.ambient_color[0],
+	            materialBird.ambient_color[1], materialBird.ambient_color[2]);
 //	glUniform1i(shader_param_.object_type, TYPE_BIRD);
+	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);
 	bird_.draw();
+	glUniform1i(shader_param_.object_type, TYPE_LINE);
+	drawAxis(1.f);
 
 	if (bCameraActive) {
 		ndk_helper::Mat4 mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0);

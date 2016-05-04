@@ -10,17 +10,17 @@ Bird::Bird():
 		state_(FLYING_DOWN),
 		inertion(0.f),
 		bInit(false),
-		bColliding(false),
-		world_pos(ndk_helper::Vec3(-0.8, 0.5, 0))
+		bColliding(false)
 {
-
-//
-	circle.r=0.1;
+	reset();
+	circle.r=BIRD_HEIGHT/2;
 	world_pos.Value(circle.x, circle.y, circle.z);
+	circle.x -= BIRD_HEIGHT/2;
+	circle.y += BIRD_HEIGHT/2;
 }
 
 void Bird::Init() {
-//    state_ = &Bird::flyingUp;
+
 	birdMesh.resize(6);
 
 	ndk_helper::Vec3 u,v,normal;
@@ -29,18 +29,20 @@ void Bird::Init() {
 	vertices.push_back(ndk_helper::Vec3(0, 0, 0));
 	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, BIRD_HEIGHT, BIRD_HEIGHT));
 	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, 0, 0));
-	u = vertices[1]-vertices[0];
-	v = vertices[2]-vertices[0];
-	normal = u.Cross(v);
+//	u = vertices[1]-vertices[0];
+//	v = vertices[2]-vertices[0];
+//	normal = u.Cross(v);
+	normal = ndk_helper::Vec3(0, 0, -1.f);
 	normals.push_back(normal);
 	normals.push_back(normal);
 	normals.push_back(normal);
 	vertices.push_back(ndk_helper::Vec3(0, 0, 0));
 	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, BIRD_HEIGHT, -BIRD_HEIGHT));
 	vertices.push_back(ndk_helper::Vec3(-BIRD_LENGTH, 0, 0));
-	u = vertices[4]-vertices[3];
-	v = vertices[5]-vertices[3];
-	normal = u.Cross(v);
+//	u = vertices[4]-vertices[3];
+//	v = vertices[5]-vertices[3];
+//	normal = u.Cross(v);
+	normal = ndk_helper::Vec3(-1, 0, -1.f);
 	normals.push_back(normal);
 	normals.push_back(normal);
 	normals.push_back(normal);
@@ -50,10 +52,6 @@ void Bird::Init() {
 		vertices[i].Value(birdMesh[i].pos[0], birdMesh[i].pos[1],birdMesh[i].pos[2]);
 		normals[i].Value(birdMesh[i].normal[0], birdMesh[i].normal[1],birdMesh[i].normal[2]);
 	}
-//	glGenBuffers(1, &vbo_);
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-//	glBufferDataFromVector(GL_ARRAY_BUFFER, birdMesh, GL_STATIC_DRAW); // GL_DYNAMIC_DRAW GL_STATIC_DRAW
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	bInit = true;
 }
@@ -66,25 +64,26 @@ void Bird::Unload() {
 }
 
 void Bird::update() {
-	if (circle.y >0 || inertion>0) world_pos += ndk_helper::Vec3(0, inertion, 0);
-//	animateWings(inertion);
+	if (circle.y >0 || inertion>0) {
+		world_pos += ndk_helper::Vec3(0, inertion, 0);
+	} else {
+		bColliding = true;
+	}
+	animateWings(inertion);
 	world_pos.Value(circle.x, circle.y, circle.z);
 	mat_model = ndk_helper::Mat4::Translation(circle.x, circle.y, circle.z);
+	circle.x -= BIRD_HEIGHT/2;
+	circle.y += BIRD_HEIGHT/2;
 	decreaseInertion();
 }
-
+void Bird::reset() {
+	world_pos = ndk_helper::Vec3(-0.6, 0.5, 0);
+	bColliding = false;
+}
 void Bird::animateWings(float _inert) {
-	float w;
-	ndk_helper::Quaternion q(vertices[1],0);
-	ndk_helper::Quaternion qr = q.RotationAxis(ndk_helper::Vec3(1,0,0), (_inert-INERTION_MIN)*1440.f);
-	qr.Value(birdMesh[1].pos[0], birdMesh[1].pos[1],birdMesh[1].pos[2], w);
-	q = ndk_helper::Quaternion(vertices[4],0);
-	qr = q.RotationAxis(ndk_helper::Vec3(1,0,0), (-_inert+INERTION_MIN)*1440.f);
-	qr.Value(birdMesh[4].pos[0], birdMesh[4].pos[1],birdMesh[4].pos[2], w);
-//	for (uint8_t i=0; i<vertices.size();i++) {
-//		vertices[i].Value(birdMesh[i].pos[0], birdMesh[i].pos[1],birdMesh[i].pos[2]);
-//		normals[i].Value(birdMesh[i].normal[0], birdMesh[i].normal[1],birdMesh[i].normal[2]);
-//	}
+
+	birdMesh[1].pos[1] = BIRD_HEIGHT-_inert*4.f;
+	birdMesh[4].pos[1] = BIRD_HEIGHT-_inert*4.f;
 }
 
 void Bird::draw() {
@@ -97,7 +96,7 @@ void Bird::draw() {
 	glGenBuffers(1, &vbo_);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
-	glBufferDataFromVector(GL_ARRAY_BUFFER, birdMesh, GL_STATIC_DRAW); // GL_DYNAMIC_DRAW GL_STATIC_DRAW
+	glBufferDataFromVector(GL_ARRAY_BUFFER, birdMesh, GL_DYNAMIC_DRAW); // GL_DYNAMIC_DRAW GL_STATIC_DRAW
 
 //	// Wait for fence (set below) before modifying buffer.
 //	glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT,
@@ -109,9 +108,9 @@ void Bird::draw() {
 //		glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, birdMesh.size() * sizeof(VERTEX));
 //	}
 //	glUnmapBuffer(GL_ARRAY_BUFFER);
-//	glBindBuffer(GL_ARRAY_BUFFER,0);
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
 	// Pass the vertex data
 	glVertexAttribPointer(ATTRIB_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(VERTEX),

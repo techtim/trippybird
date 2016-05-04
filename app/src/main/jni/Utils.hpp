@@ -73,21 +73,21 @@ struct SAVED_STATE {
 	ndk_helper::Vec3 birdPos;
 };
 
-//bool intersects(CIRCLE circle, RECT_WH rect)
-//{
-//    float dist_x = fabsf(circle.x - rect.x);
-//    float dist_y = fabsf(circle.y - rect.y);
-//
-//    if (dist_x > (rect.width/2 + circle.r)) { return false; }
-//    if (dist_y > (rect.height/2 + circle.r)) { return false; }
-//
-//    if (dist_x <= (rect.width/2)) { return true; }
-//    if (dist_y <= (rect.height/2)) { return true; }
-//
-//    double cornerDistance_sq = pow(dist_x - rect.width/2, 2) + pow(dist_y - rect.height/2, 2);
-//
-//    return (cornerDistance_sq <= pow(circle.r, 2));
-//}
+inline bool intersects(CIRCLE circle, RECT_WH rect)
+{
+    float dist_x = fabsf(circle.x - rect.x-rect.width/2);
+    float dist_y = fabsf(circle.y - rect.y - rect.height/2);
+
+    if (dist_x > (rect.width/2 + circle.r)) { return false; }
+    if (dist_y > (rect.height/2 + circle.r)) { return false; }
+
+    if (dist_x <= (rect.width/2)) { return true; }
+    if (dist_y <= (rect.height/2)) { return true; }
+
+    double cornerDistance_sq = pow(dist_x - rect.width/2, 2) + pow(dist_y - rect.height/2, 2);
+
+    return (cornerDistance_sq <= pow(circle.r, 2));
+}
 
 //static bool valueInRange(int value, int min, int max)
 //{ return (value >= min) && (value <= max); }
