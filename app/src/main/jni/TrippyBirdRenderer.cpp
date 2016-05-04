@@ -51,7 +51,7 @@ void TrippyBirdRenderer::Init() {
 void TrippyBirdRenderer::setupWorld() {
 	srand(time(NULL));
 	obstacles_dist = cylinderObj_.getRadius()*12;
-	int num_obstacles = ceil((2.5f - 0.5)/obstacles_dist);
+	int num_obstacles = ceil(3.f/obstacles_dist);
 	obstacles_.clear();
 	for (int i=0; i<num_obstacles; i++) {
 		obstacles_.push_back(Obstacle(i*obstacles_dist));
@@ -161,7 +161,7 @@ void TrippyBirdRenderer::Render() {
 	glUniform3f(shader_param_.material_ambient_, materialCyl.ambient_color[0],
 	            materialCyl.ambient_color[1], materialCyl.ambient_color[2]);
 
-	glUniform3f(shader_param_.light0_, bVerticalView? 25.f:-25.f, .5f, 25.f);
+	glUniform3f(shader_param_.light0_, bVerticalView? 25.f:-25.f, .5f, bVerticalView? 10: 25.f);
 
 	// --- Draw walls
 
@@ -188,13 +188,12 @@ void TrippyBirdRenderer::Render() {
 	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
 	plane_.draw();
 
-	mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,0) * ndk_helper::Mat4::RotationX(90) * ndk_helper::Mat4::Translation(0,0,1.f);
+	mat_v = mat_view_ * ndk_helper::Mat4::Translation(0,0,2.f) * ndk_helper::Mat4::RotationX(1.5708);
 	mat_vp = mat_projection_ * mat_v;
 	glUniformMatrix4fv(shader_param_.matrix_projection_, 1, GL_FALSE,
 	                   mat_vp.Ptr());
 	glUniformMatrix4fv(shader_param_.matrix_view_, 1, GL_FALSE, mat_v.Ptr());
 	plane_.draw();
-
 
 	// Draw Obstacles with Cylinders
 	glUniform1i(shader_param_.object_type, TYPE_CYLINDER);

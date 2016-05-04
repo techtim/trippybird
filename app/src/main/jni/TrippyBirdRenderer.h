@@ -79,7 +79,7 @@ private:
 	const float CAM_X = 0.f;
 	const float CAM_Y = 0.5f;
 	const float CAM_Z = 1.f;
-	const float CAM_VERT_X = -1.5f;
+	const float CAM_VERT_X = -1.f;
 	const float CAM_VERT_Y = 0.5f;
 	const float CAM_VERT_Z = 1.f;
 
