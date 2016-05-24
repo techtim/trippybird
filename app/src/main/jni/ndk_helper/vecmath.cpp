@@ -359,4 +359,35 @@ Mat4 Mat4::LookAt(const Vec3& vec_eye, const Vec3& vec_at, const Vec3& vec_up) {
   return result;
 }
 
+
+Mat4 Mat4::Frustum(float left, float right, float bottom, float top, float nearZ, float farZ)
+{
+  float   deltaX = right - left;
+  float   deltaY = top - bottom;
+  float   deltaZ = farZ - nearZ;
+  Mat4  frustum = Mat4::Identity();
+
+  if ((nearZ <= 0.0f) || (farZ <= 0.0f) ||
+  (deltaX <= 0.0f) || (deltaY <= 0.0f) || (deltaZ <= 0.0f))
+  {
+    return frustum;
+  }
+
+  frustum.f_[0] = 2.0f * nearZ / deltaX;
+  frustum.f_[1] = frustum.f_[2] = frustum.f_[3] = 0.0f;
+
+  frustum.f_[5] = 2.0f * nearZ / deltaY;
+  frustum.f_[4] = frustum.f_[6] = frustum.f_[7] = 0.0f;
+
+  frustum.f_[8] = (right + left) / deltaX;
+  frustum.f_[9] = (top + bottom) / deltaY;
+  frustum.f_[10] = -(nearZ + farZ) / deltaZ;
+  frustum.f_[11] = -1.0f;
+
+  frustum.f_[14] = -2.0f * nearZ * farZ / deltaZ;
+  frustum.f_[12] = frustum.f_[13] = frustum.f_[15] = 0.0f;
+
+//    Multiply(result, &frustum, result);
+  return frustum;
+}
 }  // namespace ndkHelper

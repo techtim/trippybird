@@ -25,8 +25,11 @@
 // Include files
 //--------------------------------------------------------------------------------
 #include "NDKHelper.h"
+#include <memory>
 
 #define CLASS_NAME "android/app/NativeActivity"
+#define SEC_PER_UPDATE 0.016
+#define SPACE_BETWEEN_OBSTACLES 0.5
 
 #include "Utils.hpp"
 #include "CylinderObject.hpp"
@@ -34,18 +37,22 @@
 #include "Obstacle.hpp"
 #include "Plane.hpp"
 
+using namespace ndk_helper;
+
 class TrippyBirdRenderer {
  public:
     TrippyBirdRenderer();
     virtual ~TrippyBirdRenderer();
     void Init();
     void Render();
-    void Update(float dTime);
+    void Update(double dTime);
+	void UpdateViewport();
+	void UpdateCylinderMaterial(MATERIALS& mat, float hue_pos);
+
     void onTap();
 	void onDoubleTap();
-    bool Bind(ndk_helper::TapCamera* camera);
+    bool Bind(TapCamera* camera);
     void Unload();
-    void UpdateViewport();
 
 	void toogleCamera() { bCameraActive = !bCameraActive; camera_->Reset(true);}
 	void setPause(bool isPaused);
@@ -56,33 +63,38 @@ private:
     bool LoadShaders(SHADER_PARAMS* params, const char* strVsh,
                      const char* strFsh);
 
-    ndk_helper::Mat4 mat_projection_;
-    ndk_helper::Mat4 mat_view_;
-    ndk_helper::Mat4 mat_model_;
+    Mat4 mat_projection_;
+    Mat4 mat_view_;
+    Mat4 mat_model_;
 
-    ndk_helper::TapCamera* camera_;
+    TapCamera* camera_;
 	bool bCameraActive, bGamePaused, bVerticalView;
 
-    CylinderObject  cylinderObj_;
-	CYLINDER_MATERIALS materialCyl;
+	std::shared_ptr<CylinderObject> cylinderObj_;
+
+	MATERIALS materialCyl;
     Bird            bird_;
-	CYLINDER_MATERIALS materialBird;
 	Plane plane_;
 	float gradientPos;
+	RECT_WH topPlaneRect, bottomPlaneRect;
 
     std::vector<Obstacle> obstacles_;
     float obstacles_dist;
-	std::vector<Obstacle> & getObstacles() { return obstacles_; }
+	float obstacles_speed;
+	size_t num_obstacles;
+	double currentTime, elapsedTime, lagTime;
 
-	const float CAM_NEAR = 0.5f;
-	const float CAM_FAR = 100.f;
+	const float CAM_NEAR = .6f;
+	const float CAM_FAR = 5.f;
 	const float CAM_X = 0.f;
 	const float CAM_Y = 0.5f;
 	const float CAM_Z = 1.f;
-	const float CAM_VERT_X = -1.f;
+	const float CAM_VERT_X = -1.5f;
 	const float CAM_VERT_Y = 0.5f;
-	const float CAM_VERT_Z = 1.f;
-
+	const float CAM_VERT_Z = 0.5f;
+	const float LIGHT_X = -3.f;
+	const float LIGHT_Y = .5f;
+	const float LIGHT_Z = 5.f;
 };
 
 #endif

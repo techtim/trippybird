@@ -41,16 +41,21 @@ struct SHADER_PARAMS {
 	GLuint color_gradient_2;
 };
 
-struct CYLINDER_MATERIALS {
-    float diffuse_color[3];
-    float specular_color[4];
-    float ambient_color[3];
+//struct MATERIALS {
+//    float diffuse_color[3];
+//    float specular_color[4];
+//    float ambient_color[3];
+//};
+struct MATERIALS {
+	std::array<float, 3> diffuse_color;
+	std::array<float, 4> specular_color;
+	std::array<float, 3> ambient_color;
 };
 
 struct VERTEX {
-	float pos[3];
-	float normal[3];
-//	float uv[2];
+	std::array<float, 3> pos;
+	std::array<float, 3> normal;
+	std::array<float, 2> uv;
 };
 
 struct CIRCLE {
@@ -91,19 +96,6 @@ inline bool intersects(CIRCLE circle, RECT_WH rect)
 
     return (cornerDistance_sq <= pow(circle.r, 2));
 }
-
-//static bool valueInRange(int value, int min, int max)
-//{ return (value >= min) && (value <= max); }
-
-//static bool rectOverlap(const RECT_WH &A, const RECT_WH &B) {
-//    bool xOverlap = valueInRange(A.x, B.x, B.x + B.width) ||
-//                    valueInRange(B.x, A.x, A.x + A.width);
-//
-//    bool yOverlap = valueInRange(A.y, B.y, B.y + B.height) ||
-//                    valueInRange(B.y, A.y, A.y + A.height);
-//
-//    return xOverlap && yOverlap;
-//}
 
 template <class T>
 inline void glBufferDataFromVector(GLenum target, const std::vector<T>& v, GLenum usage) {
@@ -165,8 +157,7 @@ struct LINE_VERTEX {
 };
 
 inline void drawAxis( float size ) {
-//	std::vector<LINE_VERTEX> vertices;
-//	vertices.push_back()
+
 	GLuint vbo_;
 	LINE_VERTEX vertices[] = {
 			{{0,0,0}, {1.f,0,0,1.f}},
@@ -229,15 +220,44 @@ inline ndk_helper::Vec3 hueToRGB(float hue) {
 }
 
 
+//Frustum(Matrix *result, float left, float right, float bottom, float top, float nearZ, float farZ)
+//{
+//	float   deltaX = right - left;
+//	float   deltaY = top - bottom;
+//	float   deltaZ = farZ - nearZ;
+//	Matrix  frustum;
+//
+//	if ((nearZ <= 0.0f) || (farZ <= 0.0f) ||
+//	(deltaX <= 0.0f) || (deltaY <= 0.0f) || (deltaZ <= 0.0f))
+//	{
+//	return;
+//	}
+//
+//	frustum.m[0][0] = 2.0f * nearZ / deltaX;
+//	frustum.m[0][1] = frustum.m[0][2] = frustum.m[0][3] = 0.0f;
+//
+//	frustum.m[1][1] = 2.0f * nearZ / deltaY;
+//	frustum.m[1][0] = frustum.m[1][2] = frustum.m[1][3] = 0.0f;
+//
+//	frustum.m[2][0] = (right + left) / deltaX;
+//	frustum.m[2][1] = (top + bottom) / deltaY;
+//	frustum.m[2][2] = -(nearZ + farZ) / deltaZ;
+//	frustum.m[2][3] = -1.0f;
+//
+//	frustum.m[3][2] = -2.0f * nearZ * farZ / deltaZ;
+//	frustum.m[3][0] = frustum.m[3][1] = frustum.m[3][3] = 0.0f;
+//
+//	Multiply(result, &frustum, result);
+//}
 
-struct PackedVertex{
-    ndk_helper::Vec3 position;
-    ndk_helper::Vec2 uv;
-    ndk_helper::Vec3 normal;
-    bool operator<(const PackedVertex that) const{
-        return memcmp((void*)this, (void*)&that, sizeof(PackedVertex))>0;
-    };
-};
+//struct PackedVertex{
+//    ndk_helper::Vec3 position;
+//    ndk_helper::Vec2 uv;
+//    ndk_helper::Vec3 normal;
+//    bool operator<(const PackedVertex that) const{
+//        return memcmp((void*)this, (void*)&that, sizeof(PackedVertex))>0;
+//    };
+//};
 
 //bool getSimilarVertexIndex_fast(
 //        PackedVertex & packed,

@@ -130,14 +130,13 @@ int Engine::InitDisplay() {
     initialized_resources_ = true;
   } else {
     // initialize OpenGL ES and EGL
-//    gl_context_->Init(app_->window);
     if (EGL_SUCCESS != gl_context_->Resume(app_->window)) {
       UnloadResources();
       LoadResources();
     }
   }
 
-  ShowUI();
+//  ShowUI();
 
   // Initialize GL state.
 //  glEnable(GL_CULL_FACE);
@@ -171,6 +170,7 @@ void Engine::DrawFrame() {
   // Just fill the screen with a color.
   glClearColor(0.0f, 0.0f, 0.0f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   renderer_.Render();
 
   // Swap
@@ -280,7 +280,6 @@ void Engine::HandleCmd(struct android_app* app, int32_t cmd) {
     case APP_CMD_GAINED_FOCUS:
       eng->ResumeSensors();
           // Start animation
-//          eng->InitDisplay();
           eng->has_focus_ = true;
           break;
     case APP_CMD_LOST_FOCUS:

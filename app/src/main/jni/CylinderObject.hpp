@@ -16,6 +16,7 @@ class CylinderObject {
 public:
     CylinderObject()
     : bLoaded(false),
+    bBind(false),
     radius(CYLINDER_RADIUS),
     height(CYLINDER_HEIGHT)
     {;;}
@@ -33,7 +34,6 @@ public:
 
     void Init() {
 	    generateCylinder();
-
         bLoaded = true;
     }
 

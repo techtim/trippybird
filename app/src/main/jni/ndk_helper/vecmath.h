@@ -365,6 +365,19 @@ class Vec3 {
     return true;
   }
 
+  float operator[](std::size_t idx) const {
+    switch (idx){
+      case 0:
+        return x_;
+      case 1:
+        return y_;
+      case 2:
+        return z_;
+      default:
+        return 0;
+    }
+  }
+
   float Length() const { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); }
 
   Vec3 Normalize() {
@@ -582,6 +595,19 @@ class Vec4 {
 
   Vec4 operator*(const Mat4& rhs) const;
 
+  float operator[](std::size_t idx) const {
+    switch (idx){
+      case 0:
+        return x_;
+      case 1:
+        return y_;
+      case 2:
+        return z_;
+      default:
+        return 0;
+    }
+  }
+
   float Length() const { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_ + w_ * w_); }
 
   Vec4 Normalize() {
@@ -770,6 +796,7 @@ class Mat4 {
                           float farPlane);
 
   static Mat4 LookAt(const Vec3& vEye, const Vec3& vAt, const Vec3& vUp);
+  static Mat4 Frustum(float left, float right, float bottom, float top, float nearZ, float farZ);
 
   static Mat4 Translation(const float fX, const float fY, const float fZ);
   static Mat4 Translation(const Vec3 vec);
