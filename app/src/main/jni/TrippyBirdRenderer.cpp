@@ -165,12 +165,12 @@ void TrippyBirdRenderer::Update(double fTime) {
 				setPause(true);
 				return;
 			}
-			else if (it->getRect().x + it->getRect().width < -1.25f) {
+			else if (it->getRect().x + it->getRect().width < -3*SPACE_BETWEEN_OBSTACLES) {
 				it = obstacles_.erase(it);
 				it = obstacles_.erase(it);
 				obstacles_.push_back(Obstacle(obstacles_[obstacles_.size() - 1].getPositionX() + obstacles_dist));
 				UpdateCylinderMaterial(materialCyl, //gradientPos+0.1);
-				                       gradientPos +((num_obstacles- 1)*obstacles_dist/4.f));
+				                       gradientPos + (num_obstacles-3)*obstacles_dist/4.f);
 				obstacles_[obstacles_.size() - 1].setMaterials(materialCyl);
 				obstacles_[obstacles_.size() - 1].setDrawableObject(cylinderObj_);
 				obstacles_.push_back(obstacles_[obstacles_.size() - 1].createPair());

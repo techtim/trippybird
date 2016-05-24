@@ -13,8 +13,8 @@
 using namespace ndk_helper;
 
 #define OBSTACLES_MIN_HEIGHT .2f
-#define OBSTACLES_UP_DISTANCE 0.3f
-#define OBSTACLES_SPEED 0.003
+#define OBSTACLES_UP_DISTANCE 0.4f //0.3f
+#define OBSTACLES_SPEED 0.003f
 
 class Obstacle: public Entity {
 public:
