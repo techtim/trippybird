@@ -62,24 +62,19 @@ void Bird::reset() {
 void Bird::animateWings(float _inert) {
 	birdMesh[1].pos[1] = BIRD_HEIGHT-_inert*4.f;
 	birdMesh[1].pos[2] = BIRD_HEIGHT+_inert*2.f;
-	birdMesh[1].normal[1] -= _inert*4.f;
+	birdMesh[1].normal[1] += _inert*4.f;
 
 	birdMesh[4].pos[1] = BIRD_HEIGHT-_inert*4.f;
 	birdMesh[4].pos[2] = -BIRD_HEIGHT-_inert*2.f;
-	birdMesh[4].normal[1] += _inert*4.f;
+	birdMesh[4].normal[1] -= _inert*4.f;
 }
 
 void Bird::randomizeWings() {
-	birdMesh[1].pos[0] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[1].pos[1] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[1].pos[2] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[2].pos[2] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[2].pos[2] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[4].pos[0] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[4].pos[1] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[4].pos[2] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[5].pos[1] = (rand()%10)*BIRD_HEIGHT/10;
-	birdMesh[5].pos[2] = (rand()%10)*BIRD_HEIGHT/10;
+	for (auto &point:birdMesh) {
+		point.pos[0] = BIRD_HEIGHT - (rand() % 10) * BIRD_HEIGHT / 5;
+		point.pos[1] = BIRD_HEIGHT - (rand() % 10) * BIRD_HEIGHT / 5;
+		point.pos[2] = BIRD_HEIGHT - (rand() % 10) * BIRD_HEIGHT / 5;
+	}
 }
 
 void Bird::draw(const SHADER_PARAMS &shader_param_, const Mat4 &_view, const Mat4 &_projection) const {

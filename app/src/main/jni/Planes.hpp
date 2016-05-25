@@ -8,13 +8,20 @@
 #include "Utils.hpp"
 #include "Entity.hpp"
 
-class Plane: public Entity {
+class Planes : public Entity {
 public:
-	Plane() {
+	Planes() {
 		bInit =false;
+		// Setup bounding boxes for top and buttom planes
+		topPlaneRect.x = bottomPlaneRect.x = -1.f;
+		topPlaneRect.z = bottomPlaneRect.z = 0;
+		topPlaneRect.y = 1.f;
+		bottomPlaneRect.y = 0.f;
+		bottomPlaneRect.height = topPlaneRect.height = 0;
+		topPlaneRect.width = bottomPlaneRect.width = 2.f;
 	}
 
-	~Plane() {
+	~Planes() {
 		glDeleteBuffers(1,&vbo_);
 	}
 
@@ -45,7 +52,7 @@ public:
 
 	void draw(const SHADER_PARAMS &shader_param_, const Mat4 &_view, const Mat4 &_projection) const override {
 		if (!bInit) {
-			LOGI("[ERROR] Draw Plane without Init()");
+			LOGI("[ERROR] Draw Planes without Init()");
 			return;
 		}
 
@@ -62,6 +69,12 @@ public:
 
 		// Update uniforms and draw Planes
 		glUniform1i(shader_param_.object_type, TYPE_PLANE);
+
+		glUniform4f(shader_param_.material_diffuse_, materials_.diffuse_color[0],
+		            materials_.diffuse_color[1], materials_.diffuse_color[2], 1.f);
+
+		glUniform3f(shader_param_.material_ambient_, materials_.ambient_color[0],
+		            materials_.ambient_color[1], materials_.ambient_color[2]);
 
 		// --- Bottom
 		Mat4 mat_v = _view * Mat4::Translation(0, 0, 0);
@@ -86,8 +99,15 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
+	const RECT_WH & getTopRect() {
+		return topPlaneRect;
+	}
+	const RECT_WH & getBottomRect() {
+		return bottomPlaneRect;
+	}
 private:
 	GLuint vbo_;
 	bool bInit;
 
+	RECT_WH topPlaneRect, bottomPlaneRect;
 };

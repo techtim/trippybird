@@ -18,13 +18,6 @@ bVerticalView(false),
 gradientPos(0),
 lagTime(0)
 {
-	// Setup bounding boxes for top and buttom planes
-	topPlaneRect.x = bottomPlaneRect.x = -1.f;
-	topPlaneRect.z = bottomPlaneRect.z = 0;
-	topPlaneRect.y = 1.f;
-	bottomPlaneRect.y = 0.f;
-	bottomPlaneRect.height = topPlaneRect.height = 0;
-	topPlaneRect.width = bottomPlaneRect.width = 2.f;
 
 	mat_model_ = Mat4::Translation(0, 0, 0);
 	mat_view_ = Mat4::LookAt(Vec3(CAM_X, CAM_Y, CAM_Z),
@@ -47,7 +40,7 @@ void TrippyBirdRenderer::Init() {
 	bird_.Init();
 	cylinderObj_ = std::shared_ptr<CylinderObject>(new CylinderObject());
 	cylinderObj_->Init();
-	plane_.Init();
+	planes_.Init();
 
 	UpdateViewport();
 	setupWorld();
@@ -65,9 +58,8 @@ void TrippyBirdRenderer::setupWorld() {
 	obstacles_.clear();
 	for (size_t i=0; i<num_obstacles; i++) {
 		obstacles_.push_back(Obstacle(i*obstacles_dist));
-		float grad_ofset = i*obstacles_dist/4.f;
 //		float grad_ofset = i*obstacles_dist/num_obstacles*4.f;
-		UpdateCylinderMaterial(materialCyl, gradientPos+grad_ofset);
+		UpdateCylinderMaterial(materialCyl, gradientPos+i*obstacles_dist/4.f-COLOR_OFFSET);
 		obstacles_[obstacles_.size()-1].setDrawableObject(cylinderObj_);
 		obstacles_[obstacles_.size()-1].setMaterials(materialCyl);
 		obstacles_.push_back(obstacles_[obstacles_.size()-1].createPair());
@@ -75,6 +67,8 @@ void TrippyBirdRenderer::setupWorld() {
 
 	obstacles_speed = OBSTACLES_SPEED;
 	bird_.reset();
+	UpdateCylinderMaterial(materialCyl, gradientPos);
+	planes_.setMaterials(materialCyl);
 
 	lagTime = 0;
 }
@@ -108,7 +102,7 @@ void TrippyBirdRenderer::UpdateViewport() {
 void TrippyBirdRenderer::Unload() {
 
 	cylinderObj_->Unload();
-	plane_.Unload();
+	planes_.Unload();
 	bird_.Unload();
 
 	if (shader_param_.program_) {
@@ -144,12 +138,15 @@ void TrippyBirdRenderer::Update(double fTime) {
 		// --- Update bird
 		bird_.update(fTime);
 
-		gradientPos += obstacles_speed*0.2;
+		gradientPos += obstacles_speed*0.25;
 		if (gradientPos > 1.f) gradientPos = 0;
+		UpdateCylinderMaterial(materialCyl, gradientPos);
+		planes_.setMaterials(materialCyl);
 
 		// --- Check if collide with roof or floor
-		if (intersects(bird_.getCircle(), topPlaneRect) ||
-		    intersects(bird_.getCircle(), bottomPlaneRect)) {
+		if (intersects(bird_.getCircle(), planes_.getTopRect()) ||
+		    intersects(bird_.getCircle(), planes_.getBottomRect()))
+		{
 			bird_.setColliding(true);
 			bird_.update(fTime);
 			setPause(true);
@@ -170,7 +167,7 @@ void TrippyBirdRenderer::Update(double fTime) {
 				it = obstacles_.erase(it);
 				obstacles_.push_back(Obstacle(obstacles_[obstacles_.size() - 1].getPositionX() + obstacles_dist));
 				UpdateCylinderMaterial(materialCyl, //gradientPos+0.1);
-				                       gradientPos + (num_obstacles-3)*obstacles_dist/4.f);
+				                       gradientPos + (num_obstacles-3)*obstacles_dist/4.f-COLOR_OFFSET);
 				obstacles_[obstacles_.size() - 1].setMaterials(materialCyl);
 				obstacles_[obstacles_.size() - 1].setDrawableObject(cylinderObj_);
 				obstacles_.push_back(obstacles_[obstacles_.size() - 1].createPair());
@@ -193,30 +190,20 @@ void TrippyBirdRenderer::Render() {
 	// --- Update uniforms
 	glUniform3f(shader_param_.light0_, LIGHT_X, LIGHT_Y, LIGHT_Z);
 
-	// Generate gradient from hue with offset
-	float r, g, b;
-	Vec3 col = hueToRGB(gradientPos);
-	col.Value(r, g, b);
-	glUniform4f(shader_param_.color_gradient_1, r, g, b, 1.f);
-	col = hueToRGB(gradientPos + 0.1);
-	col.Value(r, g, b);
-	glUniform4f(shader_param_.color_gradient_2, r, g, b, 1.f);
-
 	// --- Draw walls
-	plane_.draw(shader_param_, mat_view_, mat_projection_);
+	planes_.draw(shader_param_, mat_view_, mat_projection_);
 
 	// --- Draw Obstacles with Cylinders
-//	cylinderObj_->bind();
 	for (auto &obst:obstacles_ ) {
 		obst.draw(shader_param_, mat_view_, mat_projection_);
 	}
-//	cylinderObj_->unbind();
 
 	// --- Draw Bird
 	bird_.draw(shader_param_, mat_view_, mat_projection_);
 
 }
 
+// Generate gradient from hue with offset
 void TrippyBirdRenderer::UpdateCylinderMaterial(MATERIALS& mat, float hue_pos) {
 	Vec3 color1 = hueToRGB(hue_pos);
 	Vec3 color2 = hueToRGB(hue_pos+0.1);

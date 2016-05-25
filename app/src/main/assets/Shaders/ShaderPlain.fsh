@@ -19,16 +19,15 @@
 #define USE_PHONG (1)
 
 uniform lowp vec3       vMaterialAmbient;
-uniform mediump vec4       vMaterialSpecular;
+uniform mediump vec4     vMaterialSpecular;
+uniform lowp vec4       vMaterialDiffuse;
 
 uniform lowp int        iObjectType;
 
 varying lowp vec4 colorDiffuse;
-uniform lowp vec4 colorGradient1;
-uniform lowp vec4 colorGradient2;
 
 #if USE_PHONG
-uniform highp vec3      vLight0;
+uniform highp vec3   vLight0;
 varying mediump vec3 position;
 varying mediump vec3 normal;
 #else
@@ -63,7 +62,7 @@ void drawLine() {
 void drawPlane() {
 //    lowp vec4 color1 = vec4(hue2rgb(1.f),1);
 //    lowp vec4 color2 = vec4(hue2rgb(.5.f),1);
-    gl_FragColor = mix(colorGradient1,colorGradient2, position.x);
+    gl_FragColor = mix(vec4(vMaterialAmbient,1.f),vMaterialDiffuse, position.x);
 }
 
 void main(void) {

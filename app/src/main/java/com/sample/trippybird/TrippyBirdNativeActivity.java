@@ -133,7 +133,7 @@ public class TrippyBirdNativeActivity extends NativeActivity {
                 _popupWindow.showAtLocation(mainLayout, Gravity.TOP | Gravity.START, 10, 10);
                 _popupWindow.update();
 
-//                _label = (TextView)popupView.findViewById(R.id.textViewFPS);
+                _label = (TextView)popupView.findViewById(R.id.textViewFPS);
 
             }});
     }
@@ -144,11 +144,11 @@ public class TrippyBirdNativeActivity extends NativeActivity {
             return;
 
         _activity = this;
-//        this.runOnUiThread(new Runnable()  {
-//            @Override
-//            public void run()  {
-//                _label.setText(String.format("%2.2f FPS", fFPS));
-//            }});
+        this.runOnUiThread(new Runnable()  {
+            @Override
+            public void run()  {
+                _label.setText(String.format("%2.2f FPS", fFPS));
+            }});
     }
 }
 
